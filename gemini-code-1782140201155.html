@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Study Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- LIGHT MODE (DEFAULT) --- */
+        :root {
+            --bg-color: #f8fafc;
+            --card-front: #ffffff;
+            --card-back: #0f172a;
+            --mcq-back: #1e293b;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --text-back: #f8fafc;
+            --text-back-muted: #94a3b8;
+            --accent: #3b82f6;
+            --border: #e2e8f0;
+            --tab-bg: #e2e8f0;
+            --tab-active-bg: #ffffff;
+            --btn-hover: #f1f5f9;
+            --shadow-color: rgba(0, 0, 0, 0.08);
+            --counter-bg: transparent;
+            --timeline-spine: #cbd5e1;
+            --timeline-card-bg: #ffffff;
+            --month-text: #e2e8f0;
+            --empty-dot: #f1f5f9;
+            --nav-glass: rgba(255, 255, 255, 0.85);
+        }
+
+        /* --- DARK MODE --- */
+        [data-theme="dark"] {
+            --bg-color: #020617; 
+            --card-front: #0f172a; 
+            --card-back: #1e293b; 
+            --mcq-back: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-back: #f8fafc;
+            --text-back-muted: #cbd5e1;
+            --border: #1e293b;
+            --tab-bg: #0f172a;
+            --tab-active-bg: #1e293b;
+            --btn-hover: #1e293b;
+            --shadow-color: rgba(0, 0, 0, 0.5);
+            --counter-bg: #0f172a;
+            --timeline-spine: #334155;
+            --timeline-card-bg: #0f172a;
+            --month-text: #0f172a;
+            --empty-dot: #0f172a;
+            --nav-glass: rgba(15, 23, 42, 0.85);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            height: 100dvh;
+            margin: 0;
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.4s ease, color 0.4s ease;
+            overflow: hidden; 
+            overscroll-behavior: none;
+        }
+
+        /* --- THEME TOGGLE BUTTON --- */
+        .theme-toggle {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: var(--card-front);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+            box-shadow: 0 4px 6px -1px var(--shadow-color);
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .theme-toggle:hover {
+            transform: translateY(-2px);
+            background: var(--btn-hover);
+        }
+
+        /* --- NAVIGATION TOGGLE (DESKTOP) --- */
+        .app-toggle {
+            display: flex;
+            background: var(--tab-bg);
+            padding: 5px;
+            border-radius: 100px;
+            margin-bottom: 30px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+            transition: background-color 0.4s ease, border-color 0.4s ease;
+            z-index: 100;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 100px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            background: var(--tab-active-bg);
+            color: var(--text-main);
+            box-shadow: 0 2px 8px var(--shadow-color);
+        }
+
+        .module-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .module-container.active { display: flex; }
+
+        /* --- CARD SCENE --- */
+        .scene { width: 420px; height: 320px; perspective: 1200px; cursor: pointer; z-index: 5;}
+        .card { width: 100%; height: 100%; position: relative; transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1); transform-style: preserve-3d; border-radius: 24px; box-shadow: 0 15px 40px -10px var(--shadow-color); }
+        .card.is-flipped { transform: rotateY(180deg); }
+        .card-face { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; display: flex; flex-direction: column; border-radius: 24px; padding: 32px; box-sizing: border-box; border: 1px solid var(--border); justify-content: center; align-items: center; text-align: center; transition: background-color 0.4s ease, border-color 0.4s ease; }
+        .card-front { background-color: var(--card-front); }
+        .card-back { background-color: var(--card-back); color: var(--text-back); transform: rotateY(180deg); border: 1px solid var(--border); }
+        .mcq-card-back { background-color: var(--mcq-back); border-top: 6px solid #10b981; }
+
+        /* --- VOCAB STYLING --- */
+        .urdu-wrapper { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; }
+        .urdu { font-family: 'Noto Nastaliq Urdu', serif; font-size: 38px; font-weight: 700; direction: rtl; text-align: center; color: var(--text-main); line-height: 1.5; padding-bottom: 10px; transition: color 0.4s ease; }
+        .english-word { font-size: 32px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 16px; color: #ffffff; }
+        .meaning { font-size: 16px; line-height: 1.6; color: var(--text-back-muted); max-width: 90%; }
+        .hook-container { width: 100%; display: flex; flex-direction: column; align-items: center; min-height: 40px; }
+        .hook-btn { background: transparent; border: 1px solid var(--border); padding: 8px 16px; border-radius: 100px; cursor: pointer; font-size: 13px; font-family: 'Inter', sans-serif; color: var(--text-muted); font-weight: 500; transition: all 0.2s ease; }
+        .hook-btn:hover { background: var(--btn-hover); color: var(--text-main); }
+        .hook-text { display: none; margin-top: 12px; font-size: 14px; color: var(--text-muted); text-align: center; line-height: 1.5; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- MCQ STYLING --- */
+        .mcq-q-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); font-weight: 700; margin-bottom: 15px; }
+        .mcq-question { font-size: 20px; font-weight: 500; line-height: 1.5; color: var(--text-main); transition: color 0.4s ease; }
+        .mcq-a-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #10b981; font-weight: 700; margin-bottom: 15px; }
+        .mcq-answer { font-size: 26px; font-weight: 600; line-height: 1.4; color: #ffffff; }
+
+        /* --- CONTROLS --- */
+        .controls { margin-top: 40px; display: flex; gap: 16px; align-items: center; z-index: 5;}
+        .nav-btn { padding: 10px 20px; font-size: 14px; font-weight: 500; font-family: 'Inter', sans-serif; border: 1px solid var(--border); border-radius: 12px; background-color: var(--card-front); color: var(--text-main); cursor: pointer; transition: all 0.2s ease; box-shadow: 0 1px 2px var(--shadow-color); }
+        .nav-btn:hover { background-color: var(--btn-hover); }
+        .counter { font-size: 14px; font-weight: 500; color: var(--text-muted); background: var(--counter-bg); border: 1px solid var(--border); border-radius: 12px; padding: 9px 16px; font-variant-numeric: tabular-nums; min-width: 60px; text-align: center; transition: all 0.4s ease; }
+        .instruction { margin-top: 16px; font-size: 13px; color: var(--text-muted); text-align: center; z-index: 5;}
+
+        /* ================= HORIZONTAL FULL-WIDTH TIMELINE STRUCTURE ================= */
+        .timeline-scroll-area {
+            width: 100vw; 
+            height: 480px; 
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 20px 0;
+            box-sizing: border-box;
+            scrollbar-width: none; 
+            -ms-overflow-style: none; 
+            -webkit-overflow-scrolling: touch; /* Buttery smooth iOS scrolling */
+        }
+        .timeline-scroll-area::-webkit-scrollbar { display: none; }
+
+        .horizontal-timeline {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            position: relative;
+            padding-top: 120px; 
+            padding-left: 5vw; 
+            padding-right: 5vw; 
+            width: max-content; 
+            height: 100%;
+        }
+
+        .horizontal-timeline::before {
+            content: '';
+            position: absolute;
+            top: 120px; 
+            left: 0;
+            right: 0;
+            height: 4px;
+            background-color: var(--timeline-spine);
+            z-index: 1;
+        }
+
+        /* --- SPECIFIC TO ANNUAL CALENDAR DAYS --- */
+        .month-group { display: flex; flex-direction: row; position: relative; margin-right: 40px; }
+        .month-label {
+            position: absolute;
+            top: -100px; 
+            left: 10px;
+            font-size: 70px;
+            font-weight: 800;
+            color: var(--month-text);
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            pointer-events: none; 
+            z-index: 0;
+            transition: color 0.4s ease;
+        }
+
+        .timeline-day { position: relative; display: flex; flex-direction: column; align-items: center; z-index: 2; }
+        .empty-day { width: 32px; margin-right: 4px; }
+        .has-event { width: 260px; margin-left: 15px; margin-right: 15px; }
+
+        .day-marker {
+            position: absolute;
+            top: -12px; 
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--empty-dot);
+            border: 2px solid var(--timeline-spine);
+            color: var(--text-muted);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: 600; z-index: 3; transition: all 0.4s ease;
+        }
+
+        .empty-day .day-marker { left: 50%; transform: translateX(-50%); }
+
+        .has-event .day-marker {
+            top: -16px; 
+            width: 32px;
+            height: 32px;
+            background: var(--accent);
+            color: #ffffff;
+            border: 4px solid var(--bg-color);
+            font-size: 13px; font-weight: 700;
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
+            left: 50%; transform: translateX(-50%);
+        }
+
+        .timeline-event-card {
+            margin-top: 40px; 
+            background: var(--timeline-card-bg);
+            border: 1px solid var(--border);
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px var(--shadow-color);
+            width: 100%;
+            box-sizing: border-box;
+            transition: background-color 0.4s ease, border-color 0.4s ease;
+            text-align: left;
+            position: relative;
+        }
+
+        .timeline-event-card::before {
+            content: ''; position: absolute; top: -23px; left: 50%; width: 2px; height: 23px; background-color: var(--accent); z-index: 1;
+        }
+        .event-text { font-size: 14px; color: var(--text-main); line-height: 1.5; }
+
+        /* Historical timeline specific override */
+        .milestone-item { width: 260px; margin-right: 50px; }
+        .milestone-badge {
+            position: absolute; top: -16px; left: 50%; transform: translateX(-50%);
+            background: var(--accent); color: #ffffff; font-size: 13px; font-weight: 700;
+            padding: 6px 16px; border-radius: 100px; border: 4px solid var(--bg-color);
+            z-index: 3; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); white-space: nowrap;
+        }
+
+
+        /* ================= 🔥 PERFECT MOBILE RESPONSIVE STYLING 🔥 ================= */
+        @media (max-width: 650px) {
+            body {
+                /* Push content slightly up to prevent bottom nav bar clipping */
+                justify-content: flex-start;
+                padding-top: 8vh;
+            }
+
+            /* 1. FLOATING GLASS BOTTOM NAVIGATION */
+            .app-toggle {
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 92vw;
+                border-radius: 100px;
+                padding: 6px;
+                background: var(--nav-glass);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+                border: 1px solid rgba(255,255,255,0.1);
+                justify-content: flex-start;
+                overflow-x: auto;
+                margin-bottom: 0;
+            }
+            .tab-btn {
+                padding: 12px 18px;
+                font-size: 13px;
+                flex-shrink: 0; /* Prevents text from squishing */
+            }
+
+            /* 2. THEME BUTTON -> TOP RIGHT */
+            .theme-toggle {
+                top: 15px;
+                right: 15px;
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+
+            /* 3. SCALED FLASHCARDS */
+            .scene {
+                width: 90vw;
+                height: 55vh; /* Responsive height */
+                min-height: 300px;
+                max-height: 450px;
+            }
+            .card-face { padding: 20px; }
+            .urdu { font-size: 28px; }
+            .english-word { font-size: 24px; }
+            .meaning { font-size: 15px; }
+            .mcq-question { font-size: 16px; }
+            .mcq-answer { font-size: 22px; }
+
+            /* 4. CHUNKY THUMB-FRIENDLY CONTROLS */
+            .controls {
+                width: 90vw;
+                justify-content: space-between;
+                margin-top: 20px;
+                gap: 10px;
+            }
+            .nav-btn {
+                flex: 1; /* Stretch to fill space */
+                padding: 14px 0;
+                font-size: 14px;
+                border-radius: 14px;
+            }
+            .counter {
+                flex: 0.6;
+                padding: 14px 0;
+                font-size: 14px;
+                border-radius: 14px;
+            }
+            .instruction { display: none; /* Hide instruction text on mobile to save space */ }
+
+            /* 5. PERFECTLY PROPORTIONED TIMELINES */
+            .timeline-scroll-area {
+                height: calc(100dvh - 140px); /* Fill space between top and nav bar */
+                padding-top: 10px;
+            }
+            .horizontal-timeline {
+                padding-top: 60px; /* Bring line up */
+            }
+            .horizontal-timeline::before { top: 60px; }
+
+            .month-label {
+                font-size: 40px;
+                top: -55px;
+                opacity: 0.6; /* Subtler on mobile */
+            }
+
+            .empty-day { width: 16px; } /* Tighter scale */
+            .has-event { width: 220px; margin-left: 10px; margin-right: 10px; }
+            
+            .timeline-event-card {
+                padding: 14px;
+                margin-top: 30px;
+            }
+            .timeline-event-card::before { top: -18px; height: 18px; }
+
+            .milestone-item { width: 220px; margin-right: 30px; }
+        }
+    </style>
+</head>
+<body data-theme="light">
+
+    <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
+
+    <div class="app-toggle">
+        <button id="tab-vocab" class="tab-btn active" onclick="switchTab('vocab')">Vocabulary</button>
+        <button id="tab-mcq" class="tab-btn" onclick="switchTab('mcq')">GK MCQs</button>
+        <button id="tab-timeline" class="tab-btn" onclick="switchTab('timeline')">Historical Milestones</button>
+        <button id="tab-days" class="tab-btn" onclick="switchTab('days')">Annual Calendar</button>
+    </div>
+
+    <div id="vocab-module" class="module-container active">
+        <div class="scene" id="vocab-flashcard" onclick="flipCard('vocab-inner')">
+            <div class="card" id="vocab-inner">
+                <div class="card-face card-front">
+                    <div class="urdu-wrapper"><div class="urdu" id="urdu-text">لوڈ ہو رہا ہے...</div></div>
+                    <div class="hook-container" onclick="event.stopPropagation();">
+                        <button class="hook-btn" onclick="toggleHook()">Show Memory Hook</button>
+                        <div class="hook-text" id="hook-text">Hook goes here</div>
+                    </div>
+                </div>
+                <div class="card-face card-back">
+                    <div class="english-word" id="english-text">Loading</div>
+                    <div class="meaning" id="meaning-text">Meaning will appear here.</div>
+                </div>
+            </div>
+        </div>
+        <div class="instruction" id="desktop-instruction">Tap to flip • Swipe/Arrows to navigate</div>
+        <div class="controls">
+            <button class="nav-btn" onclick="prevVocab()">Previous</button>
+            <div class="counter"><span id="vocab-index">1</span> / <span id="vocab-total">97</span></div>
+            <button class="nav-btn" onclick="nextVocab()">Next</button>
+        </div>
+    </div>
+
+    <div id="mcq-module" class="module-container">
+        <div class="scene" id="mcq-flashcard" onclick="flipCard('mcq-inner')">
+            <div class="card" id="mcq-inner">
+                <div class="card-face card-front">
+                    <div class="mcq-q-label">Question</div>
+                    <div class="mcq-question" id="mcq-q-text">Loading...</div>
+                </div>
+                <div class="card-face card-back mcq-card-back">
+                    <div class="mcq-a-label">Answer</div>
+                    <div class="mcq-answer" id="mcq-a-text">Loading...</div>
+                </div>
+            </div>
+        </div>
+        <div class="instruction">Tap to flip • Swipe/Arrows to navigate</div>
+        <div class="controls">
+            <button class="nav-btn" onclick="prevMCQ()">Previous</button>
+            <div class="counter"><span id="mcq-index">1</span> / <span id="mcq-total">70</span></div>
+            <button class="nav-btn" onclick="nextMCQ()">Next</button>
+        </div>
+    </div>
+
+    <div id="timeline-module" class="module-container">
+        <div class="timeline-scroll-area">
+            <div class="horizontal-timeline" id="historical-container">
+                </div>
+        </div>
+        <div class="instruction">Swipe Left/Right to explore historical milestones.</div>
+    </div>
+
+    <div id="days-module" class="module-container">
+        <div class="timeline-scroll-area">
+            <div class="horizontal-timeline" id="annual-365-container">
+                </div>
+        </div>
+        <div class="instruction">A continuous 365-day scale. Swipe Left/Right to explore.</div>
+    </div>
+
+    <script>
+        // --- THEME LOGIC ---
+        const themeBtn = document.getElementById('theme-btn');
+        const body = document.body;
+        const savedTheme = localStorage.getItem('appTheme');
+        
+        if (savedTheme) { body.setAttribute('data-theme', savedTheme); themeBtn.innerText = savedTheme === 'dark' ? '☀️' : '🌙'; }
+
+        function toggleTheme() {
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            body.setAttribute('data-theme', newTheme);
+            themeBtn.innerText = newTheme === 'dark' ? '☀️' : '🌙';
+            localStorage.setItem('appTheme', newTheme);
+        }
+
+        // --- TAB SWITCHING ---
+        let currentMode = 'vocab'; 
+        function switchTab(mode) {
+            currentMode = mode;
+            ['vocab', 'mcq', 'timeline', 'days'].forEach(id => {
+                document.getElementById('tab-' + id).classList.toggle('active', mode === id);
+                document.getElementById(id + '-module').classList.toggle('active', mode === id);
+            });
+            // Ensure bottom nav tab clicks scroll the active tab fully into view on small screens
+            const activeBtn = document.getElementById('tab-' + mode);
+            if (window.innerWidth <= 650 && activeBtn) {
+                activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
+        }
+
+        // --- HISTORICAL MILESTONES DATA ---
+        const historicalData = [
+            { marker: "469 BC", text: "Socrates was born." },
+            { marker: "1776", text: "United States Independence Day." },
+            { marker: "1840", text: "Treaty of Waitangi signed between British crown and Maori Chiefs." },
+            { marker: "Sep 1947", text: "Pakistan officially joined the United Nations." },
+            { marker: "Nov 1947", text: "Gilgit Baltistan achieved independence." },
+            { marker: "1949", text: "NATO was formed." },
+            { marker: "1969", text: "1st OIC meeting held in Rabat, Morocco." },
+            { marker: "1972", text: "The Strategic Arms Limitation Treaty (SALT-I) was enacted." },
+            { marker: "1974", text: "2nd OIC meeting held in Lahore." },
+            { marker: "2011", text: "OIC renamed to Organisation of Islamic Cooperation." },
+            { marker: "Feb 2020", text: "Doha Agreement was signed." },
+            { marker: "Mar 2020", text: "Covid-19 officially declared as a Pandemic by the WHO." },
+            { marker: "2023", text: "First digital census held in Pakistan." },
+            { marker: "May 2024", text: "NCCIA was built." },
+            { marker: "May 2025", text: "Asim Munir ranked as five-star general." },
+            { marker: "Jul 2025", text: "United States removed sanctions on Syria." },
+            { marker: "Feb 2026", text: "Crime Control Department (CCD) created in Punjab Police." }
+        ];
+
+        const historicalContainer = document.getElementById('historical-container');
+        historicalData.forEach(item => {
+            const el = document.createElement('div');
+            el.className = 'timeline-day milestone-item';
+            el.innerHTML = `
+                <div class="milestone-badge">${item.marker}</div>
+                <div class="timeline-event-card">
+                    <div class="event-text">${item.text}</div>
+                </div>
+            `;
+            historicalContainer.appendChild(el);
+        });
+
+
+        // --- 365 DAY CONTINUOUS CALENDAR LOGIC ---
+        const annualEventsMap = {
+            "February": {
+                4: "World Cancer Day",
+                22: "Anniversary of the 2nd OIC Summit Meeting held in Lahore (1974)",
+                26: "Crime Control Department (CCD) established in Punjab Police (2026)",
+                28: "Doha Agreement Signing Anniversary (2020)"
+            },
+            "March": {
+                15: "Anniversary of COVID-19 being declared a Pandemic (2020)"
+            },
+            "May": {
+                3: "National Cyber Crime Investigation Agency Anniversary (2024)",
+                20: "Gen. Asim Munir ranked as a Five-Star General (2025)"
+            },
+            "July": {
+                1: "US lifted economic sanctions on Syria (2025)",
+                4: "United States Independence Day",
+                18: "Nelson Mandela International Day"
+            },
+            "September": {
+                22: "Anniversary of the 1st OIC Meeting in Rabat, Morocco (1969)",
+                27: "World Tourism Day",
+                30: "Pakistan Official UN Admission Anniversary (1947)"
+            },
+            "October": {
+                1: "China National Day"
+            },
+            "November": {
+                1: "Gilgit Baltistan Independence Day Anniversary (1947)"
+            }
+        };
+
+        const calendarMonths = [
+            {name: "January", days: 31}, {name: "February", days: 28}, {name: "March", days: 31},
+            {name: "April", days: 30}, {name: "May", days: 31}, {name: "June", days: 30},
+            {name: "July", days: 31}, {name: "August", days: 31}, {name: "September", days: 30},
+            {name: "October", days: 31}, {name: "November", days: 30}, {name: "December", days: 31}
+        ];
+
+        const annual365Container = document.getElementById('annual-365-container');
+
+        calendarMonths.forEach(monthObj => {
+            const monthGroup = document.createElement('div');
+            monthGroup.className = 'month-group';
+            
+            let daysHtml = `<div class="month-label">${monthObj.name}</div>`;
+            
+            for(let d = 1; d <= monthObj.days; d++) {
+                let eventText = annualEventsMap[monthObj.name] && annualEventsMap[monthObj.name][d];
+                
+                if (eventText) {
+                    daysHtml += `
+                        <div class="timeline-day has-event">
+                            <div class="day-marker">${d}</div>
+                            <div class="timeline-event-card">
+                                <div class="event-text">${eventText}</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    daysHtml += `
+                        <div class="timeline-day empty-day">
+                            <div class="day-marker">${d}</div>
+                        </div>
+                    `;
+                }
+            }
+            
+            monthGroup.innerHTML = daysHtml;
+            annual365Container.appendChild(monthGroup);
+        });
+
+        // --- FULL VOCABULARY DATA (97 WORDS) ---
+        const words = [
+            { urdu: "تسلی دینا", eng: "To Console", meaning: "To comfort someone who is sad or disappointed.", hook: "Handing a gaming 'console' to a crying friend." },
+            { urdu: "تباہ کن", eng: "Catastrophic", meaning: "Causing sudden, widespread disaster and immense damage.", hook: "A massive earthquake destroying a city." },
+            { urdu: "فرق کرنا", eng: "To Distinguish", meaning: "To recognize or point out the difference between things.", hook: "'Dis-ting-wish' you could tell twins apart." },
+            { urdu: "برعکس / مختلف", eng: "Unlike", meaning: "Totally different from someone or something else.", hook: "Clicking 'unlike' because it's completely opposite." },
+            { urdu: "سمجھوتہ", eng: "Trade-Off", meaning: "A compromise where you lose one advantage to gain another.", hook: "High salary but trading away free time for a commute." },
+            { urdu: "آگے پیچھے / بحث مباحثہ", eng: "Back And Forth", meaning: "Moving continuously between positions; a long dialogue.", hook: "A tennis match going back and forth." },
+            { urdu: "فالتو پن / ضرورت سے زیادہ", eng: "Redundancy", meaning: "Being no longer useful, or having a duplicate backup system.", hook: "Keeping a spare tire in your trunk." },
+            { urdu: "مجبور کرنا / روکنا", eng: "To Constrain", meaning: "To strictly limit, restrict, or force into a boundary.", hook: "A tight train track that 'constrains' a train." },
+            { urdu: "فرض کرنا / دعویٰ کرنا", eng: "To Posit", meaning: "To put forward an idea or fact as a basis for an argument.", hook: "To 'post it' on a sticky note as fact." },
+            { urdu: "برداشت کرنا", eng: "To Tolerate", meaning: "To bear, endure, or allow something you don’t fully like.", hook: "Putting up with a 'tall' person blocking your view." },
+            { urdu: "گھنڈی / ہینڈل", eng: "Knob", meaning: "A round handle or control button used for adjusting dials.", hook: "Knocking before turning the knob." },
+            { urdu: "زیادہ سے زیادہ قیمت دینے والا", eng: "Argmax", meaning: "The input value that maximizes a mathematical function.", hook: "Argue to the max for the highest score." },
+            { urdu: "کم تعدد کو گزرنے دینے والا فلٹر", eng: "Low-Pass Filter", meaning: "A tool blocking high frequencies while letting low ones pass.", hook: "A bouncer only letting low voices pass." },
+            { urdu: "قسمت / تقدیر", eng: "Fate", meaning: "A mysterious power believed to control all events; destiny.", hook: "Walking through a 'gate' you can't avoid." },
+            { urdu: "حد سے زیادہ", eng: "Excessive", meaning: "Far too much; more than what is normal or reasonable.", hook: "Adding extra salt until it's ruined." },
+            { urdu: "پرامید", eng: "Optimistic", meaning: "Feeling very hopeful and confident about the positive future.", hook: "An optometrist giving you bright glasses." },
+            { urdu: "قیامت کا دن", eng: "Doomsday", meaning: "A time of complete, final destruction; the end of the world.", hook: "The doom and gloom of the last day." },
+            { urdu: "گفتگو کرنے والے", eng: "Interlocutors", meaning: "People taking part in a formal conversation or dialogue.", hook: "Diplomats 'entering lockers' to talk privately." },
+            { urdu: "ہار ماننا / پیدا کرنا", eng: "To Yield", meaning: "To accept defeat, or to produce a natural result/profit.", hook: "A farmer waiting for his field to yield crops." },
+            { urdu: "ڈٹے رہنا / چپکنا", eng: "To Stick", meaning: "To stay firmly attached, or stay dedicated to a path.", hook: "Using a glue stick to stay at your desk." },
+            { urdu: "رکاوٹ کی وجہ", eng: "Sticking Point", meaning: "An obstacle that causes progress or negotiation to stop.", hook: "A sharp stick poking a tire." },
+            { urdu: "رکاوٹ بننا", eng: "In The Way Of", meaning: "Serving as a barrier, or regarding a specific category.", hook: "A boulder in the way of your car." },
+            { urdu: "رکاوٹ / مشکل", eng: "Hurdle", meaning: "A barrier or difficulty you must jump over to succeed.", hook: "A herd of cows you have to jump over." },
+            { urdu: "مقتدر تعطل / بند گلی", eng: "Deadlock", meaning: "A standstill where neither side budges.", hook: "Two doors locked with deadbolts facing each other." },
+            { urdu: "تاہم / لیکن", eng: "However", meaning: "But; on the other hand (introduces a contrasting statement).", hook: "How ever you look at it, there's another side." },
+            { urdu: "رٹا لگانا / نقل اتارنا", eng: "To Parrot", meaning: "To repeat words mechanically without understanding them.", hook: "A literal green parrot on your shoulder." },
+            { urdu: "رعایت / مراعات", eng: "Concession", meaning: "A point or privilege given up to settle an argument.", hook: "Giving up a free hotdog at a concession stand." },
+            { urdu: "ہلکا کرنا / پتلا کرنا", eng: "To Dilute", meaning: "To make something weaker by adding water or extra elements.", hook: "Pouring a gallon of water into a tiny tea cup." },
+            { urdu: "دور رہنا / بائیکاٹ کرنا", eng: "To Shun", meaning: "To intentionally avoid, ignore, or stay away from.", hook: "A proud person with 'shaan' turning their back." },
+            { urdu: "سختی / ضد", eng: "Rigidity", meaning: "Inability to bend, or stubborn refusal to change plans.", hook: "A steel 'ridge' that won't bend." },
+            { urdu: "چال / داؤ", eng: "Gambit", meaning: "A risky opening move made to gain a later advantage.", hook: "A gambler making a risky opening bet." },
+            { urdu: "دہرانے کے لائق", eng: "Bears Repeating", meaning: "An observation or fact important enough to say more than once.", hook: "A giant bear roaring the exact same warning twice." },
+            { urdu: "ذمہ داری / بوجھ", eng: "Onus", meaning: "A heavy duty, blame, or responsibility for an action.", hook: "The responsibility is 'on us'." },
+            { urdu: "نیا آغاز کرنا", eng: "Turn The Page", meaning: "To make a fresh start after getting past a difficult time.", hook: "Physically turning a book page." },
+            { urdu: "جارح / پہل کرنے والا", eng: "Aggressor", meaning: "A person or country that attacks first without reason.", hook: "An aggressive dinosaur charging first." },
+            { urdu: "مخلص / سچا", eng: "Sincere", meaning: "Honest, genuine, real, and free from deceit.", hook: "Being real 'since here'." },
+            { urdu: "دوبارہ استعمال کے قابل", eng: "To Recycle", meaning: "To process waste materials so they can be used again.", hook: "A bicycle made of plastic bottles." },
+            { urdu: "گھیراؤ کرنا / گھیرنا", eng: "To Encircle", meaning: "To surround or shut in completely on all sides.", hook: "Drawing a giant circle around a fort." },
+            { urdu: "آخر کار / رفتہ رفتہ", eng: "Eventually", meaning: "In the end; after a long time or substantial effort.", hook: "Waiting for an 'event' that takes 10 years." },
+            { urdu: "ہتھوڑا مارنا / زور دینا", eng: "To Hammer", meaning: "To hit hard repeatedly, or drive a point home forcefully.", hook: "Using a hammer to nail a sticky note." },
+            { urdu: "بحث کر کے طے کرنا", eng: "To Hammer Out", meaning: "To laboriously work out the details of an agreement.", hook: "Blacksmiths hitting a contract with hammers." },
+            { urdu: "مائل ہونا / رجحان ہونا", eng: "To Incline", meaning: "To naturally lean toward an opinion, belief, or slope.", hook: "An incline treadmill making you lean." },
+            { urdu: "ذہن نشین کرنا", eng: "To Ingrain", meaning: "To firmly fix a habit or belief deeply into someone’s mind.", hook: "Planting a grain of wheat in your brain." },
+            { urdu: "سنکی / پاگل سا", eng: "Batty", meaning: "Crazy, eccentric, or slightly wild in behavior.", hook: "Actual bats flying around in a head." },
+            { urdu: "پابندی کرنا / رہنا", eng: "To Abide", meaning: "To accept and follow a rule, law, or decision.", hook: "A 'bride' following all the vows." },
+            { urdu: "معذور کرنا / مفلوج کرنا", eng: "To Cripple", meaning: "To severely damage, weaken, or disable something.", hook: "A virus cutting virtual legs off a server." },
+            { urdu: "اتھلا / سطحی / کم گہرا", eng: "Shallow", meaning: "Of little depth; physically not deep, or lacking deep thought.", hook: "A puddle too thin to dip a toe in." },
+            { urdu: "سامنا کرنا", eng: "To Confront", meaning: "To face an opponent or a difficult problem directly.", hook: "Standing right 'in front' of a lion." },
+            { urdu: "تلاش / تعاقب", eng: "Pursuit", meaning: "The active, dedicated act of chasing or searching for a goal.", hook: "Running a marathon in a business suit." },
+            { urdu: "گمراہ گروہ / عقیدت", eng: "Cult", meaning: "Devotion to an extreme figure/ideas; an insular group.", hook: "People bowing to a glowing calculator." },
+            { urdu: "ناگزیر / اٹل", eng: "Inevitable", meaning: "Certain to happen; totally unavoidable.", hook: "Gravity pulling an apple down." },
+            { urdu: "زور دینا / اہمیت دینا", eng: "To Emphasize", meaning: "To give special importance or prominence to a detail.", hook: "Using a giant yellow highlighter." },
+            { urdu: "ضدی / ہٹ دھرم", eng: "Obstinate", meaning: "Stubbornly refusing to change one’s opinion or course of action.", hook: "A concrete obstacle in your path." },
+            { urdu: "غیر ارادی", eng: "Involuntary", meaning: "Done automatically without conscious control or intent.", hook: "Leg kicking when a doctor taps your knee." },
+            { urdu: "بھاڑ میں جائیں وہ", eng: "Screw Them", meaning: "Expressing anger, contempt, or disregard for others.", hook: "Using a screwdriver to twist away bad people." },
+            { urdu: "دستبرداری / تخت چھوڑنا", eng: "Abdication", meaning: "The formal act of stepping down from power or abandoning duty.", hook: "A king dropping his crown and leaving." },
+            { urdu: "اچانک راستہ بدلنا", eng: "Zags Away", meaning: "To suddenly alter course or move in an unexpected direction.", hook: "Running straight, then making a 'Z' turn." },
+            { urdu: "کمزور / نشانے پر", eng: "Vulnerable", meaning: "Open to physical or emotional attack; easily damaged.", hook: "A turtle walking without its shell." },
+            { urdu: "خصوصیت / خصلت", eng: "Trait", meaning: "A distinguishing quality or feature of someone’s personality.", hook: "A 'tray' carrying your personality ingredients." },
+            { urdu: "خطرے کی علامت", eng: "Red Flag", meaning: "A warning sign indicating hidden danger or bad character.", hook: "A giant red flag over a broken bridge." },
+            { urdu: "سلطنت / دائرہ کار", eng: "Realm", meaning: "A kingdom, or a specific field/domain of interest.", hook: "A magical glowing border around your desk." },
+            { urdu: "خیالی پلاؤ پکانا", eng: "To Fantasize", meaning: "To imagine or daydream about improbable scenarios.", hook: "Staring at the ceiling dreaming of dragon wings." },
+            { urdu: "سحر زدہ کرنا / متاثر کرنا", eng: "To Fascinate", meaning: "To strongly attract, interest, or charm someone.", hook: "Unable to look away from a magic trick." },
+            { urdu: "رجحان رکھنا", eng: "Tend To", meaning: "To have a regular habit or likelihood to behave a certain way.", hook: "A tree tending to lean toward the sun." },
+            { urdu: "طنز / اشارہ", eng: "Insinuation", meaning: "An unpleasant, indirect hint or suggestion about someone.", hook: "Whispering a secret insult behind a hand." },
+            { urdu: "ہمدردی / رحم دلی", eng: "Compassion", meaning: "Deep sympathy and sorrow for another person’s suffering.", hook: "A compass pointing toward helping others." },
+            { urdu: "گلے لگانا / پیار کرنا", eng: "To Cuddle", meaning: "To hold someone close tightly in one’s arms for comfort.", hook: "Hugging a giant warm teddy bear." },
+            { urdu: "عجیب و غریب", eng: "Bizarre", meaning: "Exceptionally strange or unusual in a puzzling way.", hook: "A bazaar where everyone walks on hands." },
+            { urdu: "چھلانگ لگانا", eng: "To Leap", meaning: "To make a powerful, sudden, and long jump physically, or a massive transition in progress.", hook: "A frog jumping across a huge river." },
+            { urdu: "تلاش کرنا / بے نقاب کرنا", eng: "To Unearth", meaning: "To dig up or uncover hidden secrets/information.", hook: "Digging into the earth for a treasure chest." },
+            { urdu: "اندازہ لگانا / جائزہ لینا", eng: "To Assess", meaning: "To carefully evaluate or judge the quality or value.", hook: "An inspector checking a diamond with a magnifying glass." },
+            { urdu: "انتہائی اہم", eng: "Crucial", meaning: "Extremely important; vital to final success or failure.", hook: "The one cross beam stopping a bridge from falling." },
+            { urdu: "مختلف / گوناگوں", eng: "Diverse", meaning: "Showing a great deal of variety; very different from one another.", hook: "A diver in a reef with a thousand colored fish." },
+            { urdu: "پابندی کرنا / چپکے رہنا", eng: "To Adhere", meaning: "To strictly follow a rule, or physically stick to a surface.", hook: "Using adhesive tape to attach a rulebook to your chest." },
+            { urdu: "نتائج / انجام", eng: "Consequences", meaning: "The natural results or outcomes that follow an action (usually bad).", hook: "The domino effect crashing everything down." },
+            { urdu: "بالکل ٹھیک / واضح", eng: "Precise", meaning: "Exact, accurate, and paying careful attention to tiny details.", hook: "A surgeon using a laser." },
+            { urdu: "مبہم / مشکوک", eng: "Ambiguous", meaning: "Open to more than one interpretation; unclear or puzzling.", hook: "A road sign pointing left and right at the same time." },
+            { urdu: "شدید / خوفناک", eng: "Fierce", meaning: "Displaying an intense, aggressive, or ferociously powerful energy.", hook: "A tiger showing all its teeth." },
+            { urdu: "گہرا / عمیق", eng: "Profound", meaning: "Demanding deep thought; showing great intensity or knowledge.", hook: "A dark well that goes endlessly down." },
+            { urdu: "نفع بخش / فائدہ مند", eng: "Lucrative", meaning: "Producing a great deal of profit, money, or wealth.", hook: "'Luck-rative' finding a briefcase of gold." },
+            { urdu: "گروہ / جتھیہ", eng: "Cohort", meaning: "A specific group of people treated as one due to a shared trait.", hook: "A Roman shield wall moving as one." },
+            { urdu: "جمع کرنا / ڈھیر لگانا", eng: "To Accumulate", meaning: "To gradually gather or build up a quantity over time.", hook: "Snow slowly piling up on a roof." },
+            { urdu: "مزاج / طبعیت", eng: "Temperament", meaning: "A person’s natural state of mind or default personality.", hook: "The temperature of your personality." },
+            { urdu: "اظہار / علامت", eng: "Manifestation", meaning: "A clear physical sign or appearance of something abstract.", hook: "A ghost becoming fully visible." },
+            { urdu: "فرضیہ / ذمہ داری", eng: "Obligation", meaning: "A legal, moral, or professional duty that forces an action.", hook: "An iron chain linking your ankle to your desk." },
+            { urdu: "مجسم کرنا / عکاسی کرنا", eng: "To Embody", meaning: "To serve as the perfect visible example of an abstract idea.", hook: "A firefighter perfectly showing courage." },
+            { urdu: "ملاپ / ترکیب", eng: "Synthesis", meaning: "The combination of separate ideas or elements into a new whole.", hook: "Mixing blue and yellow paint to make green." },
+            { urdu: "بے عیب / نقص سے پاک", eng: "Flawless", meaning: "Without any imperfections or mistakes; absolutely perfect.", hook: "A diamond without a single scratch." },
+            { urdu: "لچک / ثابت قدمی", eng: "Resilience", meaning: "The capacity to recover quickly from setbacks; mental toughness.", hook: "A rubber band perfectly snapping back." },
+            { urdu: "نزاکت / کمزوری", eng: "Fragility", meaning: "The state of being easily broken, delicate, or damaged.", hook: "A glass vase teetering on a table edge." },
+            { urdu: "واضح / صاف صاف", eng: "Explicit", meaning: "Stated clearly, directly, and in detailed precision.", hook: "A teacher 'explaining it' loudly." },
+            { urdu: "الٹا اثر ہونا", eng: "To Backfire", meaning: "To produce the exact opposite, unwanted result of a plan.", hook: "A gun firing backward into your face." },
+            { urdu: "فروغ دینا / کاشت کرنا", eng: "To Cultivate", meaning: "To purposefully nurture, grow, or develop a skill/mindset.", hook: "A tractor cultivating seeds." },
+            { urdu: "ہلکا پھلکا / پرسکون", eng: "Low key", meaning: "Quiet, relaxed, restrained, or not attracting big attention.", hook: "Pressing the low keys on a piano softly." },
+            { urdu: "فرضی / قیاسی", eng: "Hypothetical", meaning: "Based on a guess or imagined setup rather than proven fact.", hook: "A giant pink hippo with wings." },
+            { urdu: "یادگار منانا", eng: "To Commemorate", meaning: "To officially honor the memory of a past event or person.", hook: "Engraving a hero's name on a bronze statue." },
+            { urdu: "مجموعی", eng: "Holistic", meaning: "Dealing with the whole of something rather than just its parts.", hook: "Looking at the whole puzzle, not just a piece." }
+        ];
+
+        // --- FULL GK MCQS DATA (70 ITEMS) ---
+        const mcqs = [
+            { q: "The first UN women ambassador of Pakistan", a: "Maliha Lodhi" },
+            { q: "The Indus river originates in China near", a: "Lake Manasarovar" },
+            { q: "FriendShip gate is located at", a: "Torkham Border" },
+            { q: "Wakhan corridor connects", a: "Afghanistan & China" },
+            { q: "Height of Mount Vinson", a: "4892 meters" },
+            { q: "Pakistan Gate is the border between", a: "Iran and Pakistan" },
+            { q: "Which Continent was referred as Dark Continent", a: "Africa" },
+            { q: "Author of Harry Potter book series", a: "J.K. Rowling" },
+            { q: "US Independence day", a: "4th July 1776" },
+            { q: "Continent Australia is also called as", a: "Oceania" },
+            { q: "Philately is the study of", a: "Stamp collecting" },
+            { q: "Pisciculture is the study of", a: "Fish farming" },
+            { q: "Telepathy is the study of", a: "Transmission of thoughts directly between minds without physical senses." },
+            { q: "Cryptography is the study of", a: "Secret Writing" },
+            { q: "Diamer basha dam is on river", a: "Indus" },
+            { q: "City of Saints", a: "Multan" },
+            { q: "State of matter with highest kinetic energy", a: "Gas" },
+            { q: "Evaporation is", a: "Cooling Process" },
+            { q: "Pakistan and Tajikistan are separated by", a: "Wakhan Corridor" },
+            { q: "NATO was formed in", a: "1949" },
+            { q: "The Strategic Arms Limitation Treaty (SALT-I)", a: "1972" },
+            { q: "World War II began with Germany attack on", a: "Poland" },
+            { q: "Covid 19 was officially declared as a Pandemic by WHO in", a: "March 2020" },
+            { q: "What forced US to join World War II", a: "Pearl Harbour Attack by Japan" },
+            { q: "Fastest sinking city", a: "Jakarta" },
+            { q: "Doha agreement", a: "Feb 2020" },
+            { q: "1st OIC meeting", a: "Rabat, Morocco, Sep 22 to 25, 1969" },
+            { q: "2nd OIC meeting", a: "Lahore, Feb 22–24, 1974" },
+            { q: "Pakistan officially joined UN on", a: "30 Sep 1947" },
+            { q: "Socrates was born in", a: "469 BC" },
+            { q: "Which country invented tank", a: "UK" },
+            { q: "World Cancer day", a: "4 Feb" },
+            { q: "Height of K2", a: "8611 meters" },
+            { q: "Smallest Republic", a: "Nauru" },
+            { q: "Largest Producer & Consumer of Electricity in Islamic world", a: "KSA" },
+            { q: "Saltiest Ocean", a: "Atlantic" },
+            { q: "Gilgit Baltistan got independence", a: "1st Nov 1947" },
+            { q: "Arabian desert is in", a: "Western Asia" },
+            { q: "Gibraltar strait connects Atlantic ocean and", a: "The Mediterranean Sea" },
+            { q: "Oldest university of Pakistan", a: "University of Punjab" },
+            { q: "Treaty of waitangi was signed between British crown and", a: "Maori Chiefs in 1840" },
+            { q: "Tower Bridge", a: "London" },
+            { q: "Nelson Mandela day", a: "18th July" },
+            { q: "Psephology is the scientific study of", a: "Elections" },
+            { q: "Peace memorial park in Japan is memorial of", a: "Atomic bomb victims" },
+            { q: "Which country has agreed to help the US locate missing Americans in the war-ravaged country?", a: "Syria" },
+            { q: "Which Prophet is known as “Khalilullah” (Friend of Allah)?", a: "Ibrahim as" },
+            { q: "Which vitamin is primarily produced in the skin in response to sunlight?", a: "D" },
+            { q: "Which is the first digital census held in Pakistan?", a: "2023" },
+            { q: "Which new department has been created in Punjab Police to control crime?", a: "Crime Control Department CCD - 26 feb 2026" },
+            { q: "When did US removed sanctions on Syria", a: "July 1 2025" },
+            { q: "Asim Munir ranked as five star general on", a: "May 20 2025" },
+            { q: "PNSC", a: "Pakistan National Shipping Cooperation" },
+            { q: "NCCIA was built in", a: "May 3 2024" },
+            { q: "What is the name of the Angel who brings rain?", a: "Mika'il as" },
+            { q: "Smallest country by area", a: "Vatican City" },
+            { q: "National day in China", a: "October 1" },
+            { q: "Tourism day", a: "September 27" },
+            { q: "Deepest lake in world", a: "Lake Baikal" },
+            { q: "Pearl of Indian ocean is called", a: "Sri Lanka" },
+            { q: "Only country in the world with Day in one Part and night in the other", a: "Russia" },
+            { q: "Motto of UNO", a: "It's your world" },
+            { q: "Currency of Israel", a: "Shekel" },
+            { q: "Deepest part of Earth", a: "Mariana Trench" },
+            { q: "First war of china between", a: "China and Britain" },
+            { q: "Headquarters of red cross", a: "Geneva" },
+            { q: "OIC changed name from Organisation of the Islamic Conference to Organisation of Islamic Cooperation in", a: "2011" },
+            { q: "Which country, on the map of world, appears as 'Long Shoe'", a: "Italy" },
+            { q: "Oldest news agency in the world", a: "AFP" },
+            { q: "Worlds largest Island", a: "Greenland" }
+        ];
+
+        words.sort(() => Math.random() - 0.5);
+        mcqs.sort(() => Math.random() - 0.5);
+        let vocabIndex = 0; let mcqIndex = 0;
+        document.getElementById('vocab-total').innerText = words.length;
+        document.getElementById('mcq-total').innerText = mcqs.length;
+
+        function flipCard(cardId) { document.getElementById(cardId).classList.toggle('is-flipped'); }
+        function updateVocabContent(index) {
+            document.getElementById('urdu-text').innerText = words[index].urdu;
+            document.getElementById('hook-text').innerText = words[index].hook || "No hook";
+            document.getElementById('hook-text').style.display = 'none'; 
+            document.getElementById('english-text').innerText = words[index].eng;
+            document.getElementById('meaning-text').innerText = words[index].meaning;
+            document.getElementById('vocab-index').innerText = index + 1;
+        }
+        function updateMCQContent(index) {
+            document.getElementById('mcq-q-text').innerText = mcqs[index].q;
+            document.getElementById('mcq-a-text').innerText = mcqs[index].a;
+            document.getElementById('mcq-index').innerText = index + 1;
+        }
+
+        function loadVocabCard(index) {
+            const card = document.getElementById('vocab-inner');
+            if (card.classList.contains('is-flipped')) { card.classList.remove('is-flipped'); setTimeout(() => updateVocabContent(index), 300); }
+            else { updateVocabContent(index); }
+        }
+        function loadMCQCard(index) {
+            const card = document.getElementById('mcq-inner');
+            if (card.classList.contains('is-flipped')) { card.classList.remove('is-flipped'); setTimeout(() => updateMCQContent(index), 300); }
+            else { updateMCQContent(index); }
+        }
+
+        function toggleHook() {
+            const h = document.getElementById('hook-text');
+            h.style.display = (h.style.display === 'none' || h.style.display === '') ? 'block' : 'none';
+        }
+
+        function nextVocab() { vocabIndex = (vocabIndex + 1) % words.length; loadVocabCard(vocabIndex); }
+        function prevVocab() { vocabIndex = (vocabIndex - 1 + words.length) % words.length; loadVocabCard(vocabIndex); }
+        function nextMCQ() { mcqIndex = (mcqIndex + 1) % mcqs.length; loadMCQCard(mcqIndex); }
+        function prevMCQ() { mcqIndex = (mcqIndex - 1 + mcqs.length) % mcqs.length; loadMCQCard(mcqIndex); }
+
+        // Touch Swipe Logic for Flashcards
+        let touchstartX = 0;
+        let touchendX = 0;
+
+        function checkDirection() {
+            if (touchendX < touchstartX - 40) { 
+                if (currentMode === 'vocab') nextVocab();
+                else if (currentMode === 'mcq') nextMCQ();
+            }
+            if (touchendX > touchstartX + 40) { 
+                if (currentMode === 'vocab') prevVocab();
+                else if (currentMode === 'mcq') prevMCQ();
+            }
+        }
+
+        document.getElementById('vocab-module').addEventListener('touchstart', e => touchstartX = e.changedTouches[0].screenX);
+        document.getElementById('vocab-module').addEventListener('touchend', e => { touchendX = e.changedTouches[0].screenX; checkDirection(); });
+        
+        document.getElementById('mcq-module').addEventListener('touchstart', e => touchstartX = e.changedTouches[0].screenX);
+        document.getElementById('mcq-module').addEventListener('touchend', e => { touchendX = e.changedTouches[0].screenX; checkDirection(); });
+
+        document.addEventListener('keydown', function(event) {
+            if (currentMode === 'timeline' || currentMode === 'days') return; 
+            if (event.key === 'ArrowRight') currentMode === 'vocab' ? nextVocab() : nextMCQ();
+            if (event.key === 'ArrowLeft') currentMode === 'vocab' ? prevVocab() : prevMCQ();
+            if (event.key === ' ' || event.key === 'Enter') {
+                event.preventDefault(); 
+                currentMode === 'vocab' ? flipCard('vocab-inner') : flipCard('mcq-inner');
+            }
+        });
+
+        // Map mouse wheel to horizontal scrolling for BOTH timeline areas
+        document.querySelectorAll('.timeline-scroll-area').forEach(area => {
+            area.addEventListener('wheel', function(e) {
+                if (e.deltaY !== 0) {
+                    e.preventDefault();
+                    area.scrollLeft += e.deltaY;
+                }
+            });
+        });
+
+        loadVocabCard(vocabIndex);
+        loadMCQCard(mcqIndex);
+    </script>
+</body>
+</html>
