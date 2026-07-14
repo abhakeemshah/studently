@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocabulary — Master Study Hub</title>
+    <meta name="description" content="Vocabulary trainer — 103 curated English words across 9 themes. Click to flip a card and reveal the meaning. From negotiation to nuances, build your word power one card at a time.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@700&family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="./landing.css">
+    <!-- All topbar/page-backdrop/footer styling comes from landing.css so the
+         design system stays centralized (per rules.md §5: no inline magic
+         numbers / event handlers). Vocab-specific flashcard styles are
+         scoped under .vocab-* and live below because they don't recur on
+         any other page. -->
+    <style>
+        /* === 1. Layout: themed slide carousel above the footer === */
+        .vocab-stage {
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 32px 24px 80px;
+            box-sizing: border-box;
+        }
+
+        /* === 2. Top nav row: prev / progress / next === */
+        .vocab-stage-top {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 2px solid var(--color-cloud-gray);
+        }
+
+        .vocab-nav-btn {
+            background-color: var(--color-snow-white);
+            color: var(--color-sky-blue);
+            border: 2px solid var(--color-cloud-gray);
+            box-shadow: 0 4px 0 var(--color-cloud-gray);
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-buttons, 12px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+        }
+        .vocab-nav-btn:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+        .vocab-nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            color: var(--color-silver);
+        }
+        .vocab-nav-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .vocab-progress-wrapper {
+            flex-grow: 1;
+            height: 16px;
+            background-color: var(--color-cloud-gray);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+        .vocab-progress-fill {
+            height: 100%;
+            width: 0%;
+            background-color: var(--color-duo-green);
+            border-radius: 8px;
+            box-shadow: inset 0 4px 0 rgba(255,255,255,0.25);
+            transition: width 0.4s ease;
+        }
+
+        /* === 3. Theme-level action row: reset / reveal all === */
+        .vocab-stage-controls {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .vocab-btn {
+            font-family: var(--font-din-round, 'Nunito Sans', sans-serif);
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 0.053em;
+            text-transform: uppercase;
+            padding: 14px 24px;
+            border: none;
+            border-radius: var(--radius-buttons, 12px);
+            cursor: pointer;
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .vocab-btn:active {
+            transform: translateY(4px);
+            box-shadow: none !important;
+        }
+        .vocab-btn-primary {
+            background-color: var(--color-duo-green);
+            color: var(--color-snow-white);
+            box-shadow: 0 4px 0 var(--shadow-primary);
+        }
+        .vocab-btn-secondary {
+            background-color: var(--color-snow-white);
+            color: var(--color-sky-blue);
+            border: 2px solid var(--color-cloud-gray);
+            box-shadow: 0 4px 0 var(--color-cloud-gray);
+        }
+
+        /* === 4. Slide carousel === */
+        .vocab-slider-viewport {
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+            transition: height 0.4s ease;
+        }
+        .vocab-slider-track {
+            display: flex;
+            align-items: flex-start;
+            transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .vocab-slide {
+            min-width: 100%;
+            padding: 0 12px;
+            box-sizing: border-box;
+        }
+
+        .vocab-theme-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .vocab-theme-header h2 {
+            font-family: var(--font-feather, 'Fredoka', sans-serif);
+            font-size: 36px;
+            color: var(--color-almost-black);
+            margin: 0 0 8px;
+            letter-spacing: -0.02em;
+        }
+        .vocab-theme-header p {
+            color: var(--color-graphite);
+            font-weight: 700;
+            margin: 0;
+        }
+
+        /* === 5. Card grid + 3D flip cards === */
+        .vocab-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 24px;
+            padding-bottom: 24px;
+        }
+
+        .vocab-flip-card {
+            perspective: 1000px;
+            height: 220px;
+        }
+        .vocab-flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+        .vocab-flip-card.is-flipped .vocab-flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .vocab-card-front,
+        .vocab-card-back {
+            position: absolute;
+            inset: 0;
+            backface-visibility: hidden;
+            border-radius: var(--radius-cards, 16px);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--color-snow-white);
+            box-sizing: border-box;
+        }
+
+        .vocab-card-front {
+            border: 2px solid var(--color-cloud-gray);
+            border-bottom: 6px solid var(--color-cloud-gray);
+            transition: all 0.1s ease;
+        }
+        .vocab-flip-card:not(.is-flipped):hover .vocab-card-front {
+            background-color: #fcfcfc;
+        }
+        .vocab-flip-card:not(.is-flipped):active .vocab-card-front {
+            border-bottom-width: 2px;
+            transform: translateY(4px);
+        }
+
+        .vocab-card-number {
+            position: absolute;
+            top: 16px;
+            left: 20px;
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--color-silver);
+        }
+
+        .vocab-card-word {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--color-almost-black);
+            line-height: 1.2;
+            padding: 0 8px;
+            word-break: break-word;
+        }
+
+        .vocab-flip-hint {
+            position: absolute;
+            bottom: 16px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--color-silver);
+            text-transform: uppercase;
+            letter-spacing: 0.053em;
+        }
+
+        .vocab-card-back {
+            background-color: var(--color-duo-green-light);
+            border: 2px solid var(--color-duo-green);
+            border-bottom: 6px solid var(--shadow-primary);
+            transform: rotateY(180deg);
+        }
+        .vocab-card-meaning {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--color-almost-black);
+            line-height: 1.4;
+            padding: 0 8px;
+        }
+
+        /* === 6. Floating back-to-top === */
+        .vocab-back-to-top {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(20px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background-color: var(--color-sky-blue);
+            color: var(--color-snow-white);
+            box-shadow: 0 4px 0 var(--color-sky-blue-shadow, #1899d6);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .vocab-back-to-top.is-visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+        .vocab-back-to-top svg {
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* === 7. Mobile responsive === */
+        @media (max-width: 650px) {
+            .vocab-stage { padding: 16px 16px 80px; }
+            .vocab-theme-header h2 { font-size: 26px; }
+            .vocab-flip-card { height: 200px; }
+            .vocab-card-word { font-size: 18px; }
+            .vocab-card-meaning { font-size: 13px; }
+            .vocab-btn { padding: 12px 20px; font-size: 14px; }
+            .vocab-nav-btn { width: 44px; height: 44px; }
+            .vocab-card-grid { gap: 16px; }
+        }
+    </style>
+</head>
+<body data-theme="light">
+
+    <div class="page-backdrop" aria-hidden="true"></div>
+
+    <header class="topbar" role="banner">
+        <a href="./index.html" class="brand" aria-label="Master Study Hub — home">
+            <span class="brand-dot" aria-hidden="true"></span>
+            <span>master study hub</span>
+        </a>
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch to dark mode" title="Switch theme">🌙</button>
+    </header>
+
+    <main class="vocab-stage" role="main">
+
+        <!-- Theme navigation: previous theme, progress, next theme. -->
+        <div class="vocab-stage-top" id="topAnchor">
+            <button class="vocab-nav-btn" id="prevBtn" onclick="moveSlide(-1)" aria-label="Previous Section">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 19l-7-7 7-7" /></svg>
+            </button>
+
+            <div class="vocab-progress-wrapper" aria-hidden="true">
+                <div class="vocab-progress-fill" id="progressFill"></div>
+            </div>
+
+            <button class="vocab-nav-btn" id="nextBtn" onclick="moveSlide(1)" aria-label="Next Section">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
+            </button>
+        </div>
+
+        <!-- Theme-level controls: reset/reveal every card on this theme. -->
+        <div class="vocab-stage-controls">
+            <button class="vocab-btn vocab-btn-secondary" onclick="hideAll()" type="button">Reset Cards</button>
+            <button class="vocab-btn vocab-btn-primary" onclick="revealAll()" type="button">Reveal All</button>
+        </div>
+
+        <!-- Theme carousel: each slide is a theme, builds from vocabData below. -->
+        <div class="vocab-slider-viewport" id="sliderViewport">
+            <div class="vocab-slider-track" id="sliderTrack">
+                <!-- slides injected by JS -->
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="landing-footer" role="contentinfo">
+        Made with <span aria-hidden="true">❤️</span> — no signup, no tracking, all progress stays on your device.
+        &nbsp;·&nbsp;
+        <a href="./index.html">Home</a>
+        &nbsp;·&nbsp;
+        <a href="./gk.html">GK</a>
+    </footer>
+
+    <button class="vocab-btn vocab-back-to-top" id="backToTopBtn" onclick="scrollToTop()" type="button" aria-label="Back to top">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 15l7-7 7 7" /></svg>
+        TOP
+    </button>
+
+    <!--
+        vocabData: full 103-word dataset across 9 themes. The 6 newest
+        entries (Anticipating / Integration / Incentive / Oriented /
+        Inclusive / Sine qua non) are wrapped in a leading comment so
+        future editorial passes can find them quickly. Theme keys use
+        the format "<n>. <main> - <subtitle>"; the slide-build logic
+        splits on " - " so a subtitle (e.g. "obstacles") still shows.
+        The subtitle is optional — themes without " - " render only the
+        main title (the keys pre-pend the number).
+    -->
+    <script>
+        const vocabData = {
+            "1. Negotiation, Diplomacy & Conflict - reaching agreement": [
+                { word: "Trade-Off", meaning: "A balance achieved between two desirable but incompatible things; giving up one thing to get another." },
+                { word: "Back And Forth", meaning: "Repeated movement, discussion, or negotiation between two sides (e.g., 'back and forth talks')." },
+                { word: "Interlocutors", meaning: "The people participating in a conversation, dialogue, or diplomatic negotiation." },
+                { word: "To Yield", meaning: "To give way, surrender, or agree to a demand (e.g., 'yielding territory')." },
+                { word: "Sticking Point", meaning: "A specific issue in a negotiation that prevents an agreement from being reached." },
+                { word: "Deadlock", meaning: "A situation where no progress can be made because of complete disagreement (a standoff)." },
+                { word: "Concession", meaning: "Something you give up or agree to during a negotiation to reach a compromise." },
+                { word: "Gambit", meaning: "A calculated action or opening move intended to gain an advantage (from chess)." },
+                { word: "To Hammer Out", meaning: "To negotiate and reach an agreement through intense, prolonged discussion." },
+                { word: "To Confront", meaning: "To face a hostile force, problem, or person head-on." },
+                { word: "Aggressor", meaning: "The country, group, or person that attacks first or initiates a conflict." },
+                { word: "Abdication", meaning: "The act of a leader formally stepping down or giving up their power/duty." },
+                { word: "Turn The Page", meaning: "To move on from a difficult past event and start fresh." },
+                { word: "Onus", meaning: "The burden of responsibility or proof." }
+            ],
+            "2. Obstacles, Limits & Severe Risks - barriers and warnings": [
+                { word: "To Constrain", meaning: "To limit, restrict, or hold something back." },
+                { word: "In The Way Of", meaning: "Blocking progress; acting as an obstacle to something." },
+                { word: "Hurdle", meaning: "A problem or difficulty that must be overcome to achieve something." },
+                { word: "To Cripple", meaning: "To cause severe damage so that something can no longer function." },
+                { word: "Rigidity", meaning: "Inflexibility; refusing to change rules or behavior even when necessary." },
+                { word: "Redundancy", meaning: "The state of being no longer needed, or having extra backup copies." },
+                { word: "Vulnerable", meaning: "Exposed to the possibility of being attacked or harmed." },
+                { word: "Fragility", meaning: "The noun form of vulnerability; the quality of being easily broken or damaged." },
+                { word: "Catastrophic", meaning: "Involving or causing sudden, immense disaster and suffering." },
+                { word: "Doomsday", meaning: "The day of final judgment, or a hypothetical end-of-the-world scenario." },
+                { word: "Red Flag", meaning: "A warning sign indicating danger or a fundamental problem." },
+                { word: "Consequences", meaning: "The severe results or fallout of an action." },
+                { word: "To Backfire", meaning: "When a plan has the exact opposite effect of what was intended, harming the planner." },
+                { word: "Excessive", meaning: "Going beyond normal, acceptable limits; too much of something." }
+            ],
+            "3. Clarity, Analysis & Information - understanding data": [
+                { word: "To Distinguish", meaning: "To recognize what makes something different; to tell the difference." },
+                { word: "To Posit", meaning: "To assume something as a fact or starting point for an argument." },
+                { word: "To Assess", meaning: "To evaluate, estimate, or judge the nature and quality of something." },
+                { word: "Precise", meaning: "Exact, accurate, and specific in detail." },
+                { word: "Ambiguous", meaning: "Unclear, vague, or open to multiple interpretations." },
+                { word: "Explicit", meaning: "Stated clearly and in detail, leaving no room for confusion." },
+                { word: "Hypothetical", meaning: "Imagined or theoretical; a 'what if' scenario that isn't real yet." },
+                { word: "To Emphasize", meaning: "To give special importance or prominence to a point or fact." },
+                { word: "Bears Repeating", meaning: "A phrase meaning a point is so important that it should be said again." },
+                { word: "Synthesis", meaning: "The combination of different ideas, data, or components to form a coherent whole." },
+                { word: "To Unearth", meaning: "To discover hidden, buried, or secret information through investigation." },
+                { word: "Insinuation", meaning: "An indirect, subtle suggestion or hint, usually of something negative." },
+                { word: "To Parrot", meaning: "To mindlessly repeat what someone else has said without understanding it." },
+                { word: "To Dilute", meaning: "To make something weaker in force, content, or value." },
+                { word: "Manifestation", meaning: "A visible, physical sign or proof of an underlying feeling or abstract idea." }
+            ],
+            "4. Depth, Scale & Scope - the bigger picture": [
+                { word: "Shallow", meaning: "Lacking depth; superficial and ignoring the root causes." },
+                { word: "Profound", meaning: "Very deep, intense, or far-reaching; having a massive structural impact." },
+                { word: "Holistic", meaning: "Looking at the 'big picture'; treating a system as a whole rather than just its parts." },
+                /* NEW 2026-07-12 */
+                { word: "Integration", meaning: "The process of combining parts, groups, or systems into a unified whole." },
+                { word: "Diverse", meaning: "Showing a great deal of variety; consisting of many different elements." },
+                { word: "Realm", meaning: "A kingdom, or a specific field/sphere of activity or knowledge." },
+                { word: "To Encircle", meaning: "To form a circle around; to surround completely." },
+                /* NEW 2026-07-12 */
+                { word: "Oriented", meaning: "Aimed or directed toward a particular goal, audience, or focus." }
+            ],
+            "5. Trends, Paths & Time - direction of events": [
+                { word: "Zags Away", meaning: "To make a sudden, sharp, and unpredictable change in direction." },
+                { word: "Inevitable", meaning: "Certain to happen; completely unavoidable." },
+                { word: "Tend To", meaning: "To regularly behave in a certain way or have a strong likelihood of happening." },
+                { word: "Eventually", meaning: "In the end, especially after a long delay, dispute, or series of problems." },
+                { word: "Fate", meaning: "The development of events beyond a person's control; destiny." },
+                { word: "To Leap", meaning: "To jump or move suddenly and significantly." },
+                /* NEW 2026-07-12 */
+                { word: "Anticipating", meaning: "Expecting or predicting something to happen; looking forward in advance." }
+            ],
+            "6. Rules, Duties & Importance - obligations": [
+                { word: "To Abide", meaning: "To accept and act in accordance with a rule, decision, or law." },
+                { word: "To Adhere", meaning: "To stick fast to, or to follow a practice/belief strictly." },
+                { word: "Obligation", meaning: "A moral or legal duty to do something." },
+                { word: "Crucial", meaning: "Extremely important, essential, or absolutely necessary for success." },
+                { word: "Flawless", meaning: "Perfect in execution; without any defects or mistakes." },
+                { word: "To Stick", meaning: "To remain fixed in a position or to persist in doing something." },
+                /* NEW 2026-07-12 */
+                { word: "Sine qua non", meaning: "(Latin) An indispensable condition; something absolutely required." }
+            ],
+            "7. Human Emotions, Traits & Attitudes - personal qualities": [
+                { word: "To Console", meaning: "To comfort someone in a time of grief or disappointment." },
+                { word: "Optimistic", meaning: "Hopeful and confident about the future." },
+                { word: "Sincere", meaning: "Free from pretense or deceit; proceeding from genuine feelings." },
+                { word: "Involuntary", meaning: "Done without will or conscious control." },
+                { word: "Trait", meaning: "A distinguishing quality or characteristic of a person or group." },
+                { word: "Temperament", meaning: "A person's nature or general disposition." },
+                { word: "Compassion", meaning: "Deep sympathy and a desire to help those who are suffering." },
+                { word: "To Cuddle", meaning: "To hold close for warmth or comfort; to embrace affectionately." },
+                { word: "Batty", meaning: "Crazy, irrational, or completely foolish." },
+                { word: "Bizarre", meaning: "Very strange, unusual, or completely unexpected." },
+                { word: "To Fantasize", meaning: "To indulge in daydreams or imagine things that are highly unlikely." },
+                { word: "To Fascinate", meaning: "To attract strong interest and attention; to captivate." },
+                { word: "Low key", meaning: "Quiet, restrained, or modest; deliberately not attracting attention." },
+                { word: "Screw Them", meaning: "(Informal/Slang) A dismissive attitude showing anger or a refusal to cooperate." },
+                { word: "Obstinate", meaning: "Stubbornly refusing to change one's mind or course of action." },
+                { word: "Fierce", meaning: "Intense, aggressive, or highly competitive." },
+                /* NEW 2026-07-12 */
+                { word: "Inclusive", meaning: "Including all people, groups, or elements; not leaving anyone out." }
+            ],
+            "8. Actions, Habits, Groups & Growth - active behaviors": [
+                { word: "To Tolerate", meaning: "To allow the existence of something without interference; to endure." },
+                { word: "To Shun", meaning: "To persistently avoid, ignore, or reject someone or something." },
+                { word: "To Recycle", meaning: "To convert waste into reusable material; or to reuse an old idea." },
+                { word: "To Incline", meaning: "To feel willing or favorably disposed toward doing something." },
+                { word: "To Ingrain", meaning: "To firmly establish an attitude, habit, or belief so it cannot easily be changed." },
+                { word: "To Embody", meaning: "To be a perfect example or physical representation of an idea or quality." },
+                { word: "To Accumulate", meaning: "To gather together or acquire an increasing number or quantity." },
+                { word: "To Commemorate", meaning: "To recall and show respect for someone or something in a ceremony or monument." },
+                { word: "Pursuit", meaning: "The action of following or pursuing someone or something; the quest for a goal." },
+                { word: "Cult", meaning: "A group with extreme, unorthodox beliefs, or (in business) an obsessive following." },
+                { word: "Cohort", meaning: "A group of people banded together, or a specific demographic group studied together." },
+                { word: "Lucrative", meaning: "Producing a great deal of profit; highly financially rewarding." },
+                { word: "Resilience", meaning: "The capacity to recover quickly from difficulties; mental or economic toughness." },
+                { word: "To Cultivate", meaning: "To carefully nurture, develop, or build a relationship or skill over time." },
+                { word: "To Hammer", meaning: "To aggressively attack, criticize, or drive something down." },
+                /* NEW 2026-07-12 */
+                { word: "Incentive", meaning: "Something that motivates or encourages someone to act; a reward or benefit." }
+            ],
+            "9. Technical, Metaphorical & Transitions - specialized terms": [
+                { word: "Knob", meaning: "A control dial. Metaphorically: A parameter that can be adjusted." },
+                { word: "Argmax", meaning: "(Math/AI) The input value that produces the maximum output of a function." },
+                { word: "Low-Pass Filter", meaning: "(Engineering) A filter that passes low frequencies but reduces high ones." },
+                { word: "Unlike", meaning: "A preposition used to compare two things that are different." },
+                { word: "However", meaning: "A transition word used to introduce a contrasting statement or fact." }
+            ]
+        };
+
+        const themes = Object.keys(vocabData);
+        const track = document.getElementById('sliderTrack');
+        const viewport = document.getElementById('sliderViewport');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const progressFill = document.getElementById('progressFill');
+        const backToTopBtn = document.getElementById('backToTopBtn');
+
+        let currentSlide = 0;
+        let globalIndex = 1;
+
+        // --- Build slides from vocabData ---
+        // Each theme key may be "<n>. <title> - <subtitle>". Split on " - "
+        // so themes with subtitles render both the <h2> and the <p>;
+        // themes without render only the title (subtitle => '' => <p> skipped).
+        themes.forEach((theme) => {
+            const slide = document.createElement('div');
+            slide.className = 'vocab-slide';
+
+            const themeParts = theme.split(' - ');
+            const mainTitle = themeParts[0].trim();
+            const subtitle = themeParts[1] ? themeParts[1].trim() : '';
+
+            const header = document.createElement('div');
+            header.className = 'vocab-theme-header';
+            header.innerHTML =
+                '<h2>' + mainTitle + '</h2>' +
+                (subtitle ? '<p>' + subtitle + '</p>' : '');
+            slide.appendChild(header);
+
+            const grid = document.createElement('div');
+            grid.className = 'vocab-card-grid';
+
+            vocabData[theme].forEach((item) => {
+                const card = document.createElement('div');
+                card.className = 'vocab-flip-card';
+                card.onclick = () => card.classList.toggle('is-flipped');
+
+                card.innerHTML =
+                    '<div class="vocab-flip-card-inner">' +
+                        '<div class="vocab-card-front">' +
+                            '<span class="vocab-card-number">' + globalIndex + '</span>' +
+                            '<span class="vocab-card-word">' + item.word + '</span>' +
+                            '<span class="vocab-flip-hint">Click to flip</span>' +
+                        '</div>' +
+                        '<div class="vocab-card-back">' +
+                            '<span class="vocab-card-meaning">' + item.meaning + '</span>' +
+                        '</div>' +
+                    '</div>';
+                grid.appendChild(card);
+                globalIndex++;
+            });
+
+            slide.appendChild(grid);
+            track.appendChild(slide);
+        });
+
+        // --- Slider control ---
+        function updateSlider() {
+            track.style.transform = 'translateX(-' + (currentSlide * 100) + '%)';
+            prevBtn.disabled = currentSlide === 0;
+            nextBtn.disabled = currentSlide === themes.length - 1;
+            progressFill.style.width = (((currentSlide + 1) / themes.length) * 100) + '%';
+
+            // Clamp viewport height to the active slide so empty white space
+            // below shorter slides is hidden, and resize changes reflow.
+            const active = track.children[currentSlide];
+            if (active) viewport.style.height = active.offsetHeight + 'px';
+        }
+
+        function moveSlide(direction) {
+            currentSlide = Math.max(0, Math.min(themes.length - 1, currentSlide + direction));
+            updateSlider();
+            scrollToTop();
+        }
+
+        // --- Bulk reveal/reset the active theme ---
+        function revealAll() {
+            const active = track.children[currentSlide];
+            if (!active) return;
+            active.querySelectorAll('.vocab-flip-card').forEach((c) => c.classList.add('is-flipped'));
+        }
+
+        function hideAll() {
+            document.querySelectorAll('.vocab-flip-card').forEach((c) => c.classList.remove('is-flipped'));
+        }
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- Floating back-to-top visibility ---
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 200) {
+                backToTopBtn.classList.add('is-visible');
+            } else {
+                backToTopBtn.classList.remove('is-visible');
+            }
+        });
+
+        // Re-measure active slide on resize so height stays correct.
+        window.addEventListener('resize', () => {
+            const active = track.children[currentSlide];
+            if (active) viewport.style.height = active.offsetHeight + 'px';
+        });
+
+        // Initialize after first paint so the slide DOM has dimensions.
+        setTimeout(updateSlider, 50);
+    </script>
+
+    <!-- landing.js provides the page-level theme toggle that persists
+         under localStorage['appTheme']. It also wires card-track cues
+         on the landing page, but those querySelectorAll calls silently
+         no-op here since vocab-stage has none. -->
+    <script src="./landing.js"></script>
+</body>
+</html>
