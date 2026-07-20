@@ -163,12 +163,15 @@
         var searchClear = document.getElementById('gkSearchClear');
         var searchCount = document.getElementById('gkSearchCount');
         var searchEmpty = document.getElementById('gkSearchEmpty');
+        var cardOrder = [].slice.call(grid.querySelectorAll('.browse-card')); // preserve original order for reset
         function doSearch() {
           var q = searchInput.value.trim().toLowerCase();
           searchClear.style.display = q ? 'flex' : 'none';
           if (!q) {
             searchCount.style.display = 'none';
             searchEmpty.style.display = 'none';
+            // Restore original order and reset all classes
+            cardOrder.forEach(function (c) { grid.appendChild(c); });
             allItems.forEach(function (x) {
               x.card.classList.remove('is-hidden');
               x.el.classList.remove('is-highlighted', 'is-muted');
@@ -178,18 +181,32 @@
           }
           var anyMatch = false;
           var matchCount = 0;
-          // First pass: highlight matching items, mute non-matching
+          // Pass 1: highlight matching items, mute non-matching
           allItems.forEach(function (x) {
             var match = x.text.indexOf(q) !== -1;
             if (match) { anyMatch = true; matchCount++; x.el.classList.add('is-highlighted'); x.el.classList.remove('is-muted'); }
             else { x.el.classList.add('is-muted'); x.el.classList.remove('is-highlighted'); }
           });
-          // Second pass: show cards that have any match, hide those without
-          allItems.forEach(function (x) {
-            var cardHasMatch = false;
-            allItems.forEach(function (y) { if (y.card === x.card && y.text.indexOf(q) !== -1) cardHasMatch = true; });
-            if (cardHasMatch) { x.card.classList.remove('is-hidden'); x.card.classList.add('open'); }
-            else { x.card.classList.add('is-hidden'); x.card.classList.remove('open'); }
+          // Pass 2: separate cards into matched / unmatched, reorder DOM so matched come first
+          var matchedCards = [], unmatchedCards = [];
+          cardOrder.forEach(function (card) {
+            var hasMatch = false;
+            allItems.forEach(function (x) { if (x.card === card && x.text.indexOf(q) !== -1) hasMatch = true; });
+            if (hasMatch) matchedCards.push(card); else unmatchedCards.push(card);
+          });
+          matchedCards.forEach(function (c) { grid.appendChild(c); c.classList.remove('is-hidden'); c.classList.add('open'); });
+          unmatchedCards.forEach(function (c) { grid.appendChild(c); c.classList.add('is-hidden'); c.classList.remove('open'); });
+          // Pass 3: within each matched card, reorder items so matching items come first
+          matchedCards.forEach(function (card) {
+            var body = card.querySelector('.browse-card-body');
+            if (!body) return;
+            var items = [].slice.call(body.querySelectorAll('.browse-item'));
+            var matched = [], unmatched = [];
+            items.forEach(function (el) {
+              if (el.classList.contains('is-highlighted')) matched.push(el); else unmatched.push(el);
+            });
+            matched.forEach(function (el) { body.appendChild(el); });
+            unmatched.forEach(function (el) { body.appendChild(el); });
           });
           searchCount.style.display = 'block';
           searchCount.textContent = matchCount + ' result' + (matchCount !== 1 ? 's' : '') + ' for "' + searchInput.value.trim() + '"';
