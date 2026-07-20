@@ -117,45 +117,6 @@ a { color: var(--color-sky-blue); text-decoration: none; }
     gap: 16px;
 }
 
-/* Topbar navigation links */
-.topbar-nav {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-.topbar-nav-link {
-    font-family: var(--font-din-round);
-    font-size: 13px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--color-graphite);
-    padding: 8px 14px;
-    border-radius: var(--radius-buttons, 12px);
-    text-decoration: none;
-    transition: background-color 0.2s ease, color 0.2s ease;
-    white-space: nowrap;
-}
-.topbar-nav-link:hover {
-    background: var(--color-duo-green-light);
-    color: var(--shadow-primary-green);
-}
-.topbar-nav-link--gk {
-    color: var(--color-duo-green);
-}
-.topbar-nav-link--gk:hover {
-    background: var(--color-duo-green);
-    color: var(--color-snow-white);
-}
-.topbar-nav-link--vocab {
-    color: var(--color-sky-blue);
-}
-.topbar-nav-link--vocab:hover {
-    background: var(--color-sky-blue);
-    color: var(--color-snow-white);
-}
-
 .brand {
     font-family: var(--font-feather);
     font-size: 28px;
@@ -554,47 +515,7 @@ a { color: var(--color-sky-blue); text-decoration: none; }
     100% { opacity: 1; transform: translateY(0) rotate(var(--base-rotate, 0deg)) scale(1); }
 }
 
-/* ---- Scroll Reveal Base ---- */
-.reveal {
-    opacity: 0;
-    transform: translateY(40px);
-    transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
-                transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.reveal.is-visible {
-    opacity: 1;
-    transform: translateY(0);
-}
-.reveal-left {
-    opacity: 0;
-    transform: translateX(-50px);
-    transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
-                transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.reveal-left.is-visible {
-    opacity: 1;
-    transform: translateX(0);
-}
-.reveal-right {
-    opacity: 0;
-    transform: translateX(50px);
-    transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
-                transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.reveal-right.is-visible {
-    opacity: 1;
-    transform: translateX(0);
-}
-.reveal-scale {
-    opacity: 0;
-    transform: scale(0.92);
-    transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
-                transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.reveal-scale.is-visible {
-    opacity: 1;
-    transform: scale(1);
-}
+
 
 /* ---- Hero Line Animation ---- */
 .hero-line {
@@ -621,8 +542,7 @@ a { color: var(--color-sky-blue); text-decoration: none; }
     .hero-cta-row { justify-content: center; }
     .hero-trust { justify-content: center; }
     .stats-row { grid-template-columns: 1fr; }
-    .topbar { padding: 14px 20px; flex-wrap: wrap; }
-    .topbar-nav { order: 3; width: 100%; justify-content: center; margin-top: 8px; }
+    .topbar { padding: 14px 20px; }
     .hero-blob-layer { display: none; }
 }
 
@@ -630,7 +550,7 @@ a { color: var(--color-sky-blue); text-decoration: none; }
     .hero-title { font-size: 40px; }
     .hero-cta-row { flex-direction: column; align-items: stretch; }
     .btn-cta-primary, .btn-cta-secondary { width: 100%; justify-content: center; }
-    .topbar-nav-link { font-size: 11px; padding: 6px 10px; }
+
 }
 
 /* --- 10. Reduced motion --- */
@@ -680,28 +600,6 @@ a { color: var(--color-sky-blue); text-decoration: none; }
     background: rgba(15, 23, 42, 0.85);
     border-bottom-color: rgba(30, 41, 59, 0.6);
 }
-[data-theme="dark"] .topbar-nav-link {
-    color: var(--color-graphite);
-}
-[data-theme="dark"] .topbar-nav-link:hover {
-    background: rgba(88, 204, 2, 0.15);
-    color: var(--color-duo-green);
-}
-[data-theme="dark"] .topbar-nav-link--gk {
-    color: var(--color-duo-green);
-}
-[data-theme="dark"] .topbar-nav-link--gk:hover {
-    background: var(--color-duo-green);
-    color: #0f172a;
-}
-[data-theme="dark"] .topbar-nav-link--vocab {
-    color: var(--color-sky-blue);
-}
-[data-theme="dark"] .topbar-nav-link--vocab:hover {
-    background: var(--color-sky-blue);
-    color: #0f172a;
-}
-
 [data-theme="dark"] .page-backdrop {
     background-color: var(--color-snow-white);
     background-image:
