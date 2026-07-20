@@ -287,6 +287,83 @@
         }
 
         /* === 7. Mobile responsive === */
+        /* ── Word Map graph styles (shared with GK page) ── */
+        .vocab-graph-canvas-wrap {
+            flex-grow: 1;
+            position: relative;
+            min-height: 400px;
+            max-height: 560px;
+            width: 100%;
+            border-radius: var(--radius-cards, 16px);
+            overflow: hidden;
+            background: radial-gradient(ellipse at center, rgba(165,112,255,0.05) 0%, transparent 70%);
+            margin-bottom: 8px;
+        }
+        .vocab-graph-canvas-wrap canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            touch-action: none;
+        }
+        .gk-graph-instruction {
+            text-align: center;
+            font-size: 12px;
+            color: var(--color-silver);
+            font-weight: 600;
+            padding: 4px 0 8px;
+            letter-spacing: 0.03em;
+        }
+        .gk-graph-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 16px;
+            justify-content: center;
+            padding: 8px 0 4px;
+        }
+        .gk-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--color-graphite);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .gk-legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* ── Word Map toggle button in controls ── */
+        .vocab-btn-wordmap {
+            background-color: var(--color-snow-white);
+            color: var(--color-sky-blue);
+            border: 2px solid var(--color-cloud-gray);
+            box-shadow: 0 4px 0 var(--color-cloud-gray);
+            font-family: var(--font-din-round, 'Nunito Sans', sans-serif);
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 0.053em;
+            text-transform: uppercase;
+            padding: 12px 22px;
+            border-radius: var(--radius-buttons, 12px);
+            cursor: pointer;
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .vocab-btn-wordmap:active {
+            transform: translateY(4px);
+            box-shadow: none !important;
+        }
+        .vocab-btn-wordmap:hover {
+            border-color: var(--color-sky-blue);
+        }
+
         @media (max-width: 650px) {
             .vocab-stage { padding: 16px 16px 80px; }
             .vocab-theme-header h2 { font-size: 26px; }
@@ -332,6 +409,9 @@
         <div class="vocab-stage-controls">
             <button class="vocab-btn vocab-btn-secondary" onclick="hideAll()" type="button">Reset Cards</button>
             <button class="vocab-btn vocab-btn-primary" onclick="revealAll()" type="button">Reveal All</button>
+            <button class="vocab-btn-wordmap" onclick="switchVocabView('map')" type="button" title="Explore word connections">
+                🌐 Word Map
+            </button>
         </div>
 
         <!-- Theme carousel: each slide is a theme, builds from vocabData below. -->
@@ -339,6 +419,32 @@
             <div class="vocab-slider-track" id="sliderTrack">
                 <!-- slides injected by JS -->
             </div>
+        </div>
+
+        <!-- ════════════════════════════════════════════
+             Word Map Section — 3D synonym graph
+             ════════════════════════════════════════════ -->
+        <div id="vocabGraphSection" style="display:none;">
+            <div class="vocab-stage-top" style="margin-bottom:16px;margin-top:32px;">
+                <button class="vocab-nav-btn" onclick="switchVocabView('cards')" aria-label="Back to cards" title="Back to cards">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 19l-7-7 7-7" /></svg>
+                </button>
+                <div style="flex-grow:1;text-align:center;">
+                    <h2 style="font-family:var(--font-feather, 'Fredoka', sans-serif);font-size:24px;color:var(--color-almost-black);margin:0;letter-spacing:-0.02em;">
+                        🌐 Word Map
+                    </h2>
+                    <p style="margin:4px 0 0;font-size:13px;color:var(--color-graphite);font-weight:600;">
+                        Synonym &amp; related-word connections across all themes
+                    </p>
+                </div>
+                <div style="width:48px;"></div> <!-- spacer -->
+            </div>
+
+            <div class="vocab-graph-canvas-wrap" id="vocabGraphCanvasWrap">
+                <canvas id="vocabGraphCanvas"></canvas>
+            </div>
+            <div class="gk-graph-instruction">Drag to rotate · Scroll to zoom · Click a word to learn its meaning</div>
+            <div class="gk-graph-legend" id="vocabGraphLegend"></div>
         </div>
 
     </main>
@@ -612,5 +718,119 @@
          on the landing page, but those querySelectorAll calls silently
          no-op here since vocab-stage has none. -->
     <script src="./landing.js"></script>
+
+    <!-- 3D Word Graph: renderer + vocab data + init -->
+    <script src="./graph-3d.js"></script>
+    <script src="./vocab-graph-data.js"></script>
+    <script>
+      (function () {
+        'use strict';
+
+        var vocabGraphViz = null;
+        var vocabGraphInitialized = false;
+        var vocabResizeListener = null;
+        var vocabThemeObserver = null;
+
+        function vocabIsDark() {
+          return document.body.getAttribute('data-theme') === 'dark';
+        }
+        function vocabGetEdgeColor() {
+          return vocabIsDark() ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)';
+        }
+
+        // Toggle between card carousel and word map
+        window.switchVocabView = function (view) {
+          var sliderArea = document.getElementById('sliderViewport').parentElement;
+          var controlsArea = document.querySelector('.vocab-stage-controls');
+          var graphSection = document.getElementById('vocabGraphSection');
+          var topAnchor = document.getElementById('topAnchor');
+
+          if (view === 'map') {
+            sliderArea.style.display = 'none';
+            controlsArea.style.display = 'none';
+            topAnchor.style.display = 'none';
+            graphSection.style.display = 'block';
+            initVocabGraph();
+          } else {
+            sliderArea.style.display = '';
+            controlsArea.style.display = '';
+            topAnchor.style.display = '';
+            graphSection.style.display = 'none';
+          }
+        };
+
+        function initVocabGraph() {
+          if (vocabGraphInitialized) return;
+          var canvas = document.getElementById('vocabGraphCanvas');
+          if (!canvas) return;
+
+          var data = vocabGraphData;
+
+          // Build legend
+          var legendEl = document.getElementById('vocabGraphLegend');
+          if (legendEl) {
+            var cats = data.categories;
+            var legendHtml = '';
+            var catNames = Object.keys(cats).sort();
+            for (var ci = 0; ci < catNames.length; ci++) {
+              var name = catNames[ci];
+              var info = cats[name];
+              legendHtml +=
+                '<span class="gk-legend-item">' +
+                '<span class="gk-legend-dot" style="background:' + info.color + '"></span>' +
+                name.charAt(0).toUpperCase() + name.slice(1) + ' (' + info.count + ')' +
+                '</span>';
+            }
+            legendEl.innerHTML = legendHtml;
+          }
+
+          try {
+            vocabGraphViz = new Graph3D(canvas, {
+              nodes: data.nodes,
+              edges: data.edges
+            });
+
+            vocabGraphViz.bgColor = 'transparent';
+            vocabGraphViz.nodeRadius = 7;
+            vocabGraphViz.edgeColor = vocabGetEdgeColor();
+            vocabGraphViz.edgeWidth = 1.0;
+            vocabGraphViz.labelFont = 'bold 11px "Nunito Sans", system-ui, sans-serif';
+
+            // Resize to fit container
+            var wrap = document.getElementById('vocabGraphCanvasWrap');
+            function resizeCanvas() {
+              var rect = wrap.getBoundingClientRect();
+              canvas.style.width = rect.width + 'px';
+              canvas.style.height = rect.height + 'px';
+              if (vocabGraphViz) vocabGraphViz._resize();
+            }
+            resizeCanvas();
+
+            // Remove old listener before adding new one (prevents stacking)
+            if (vocabResizeListener) window.removeEventListener('resize', vocabResizeListener);
+            vocabResizeListener = resizeCanvas;
+            window.addEventListener('resize', vocabResizeListener);
+
+            // Watch for theme changes to update edge color
+            if (vocabThemeObserver) vocabThemeObserver.disconnect();
+            vocabThemeObserver = new MutationObserver(function () {
+              if (vocabGraphViz) {
+                vocabGraphViz.edgeColor = vocabGetEdgeColor();
+              }
+            });
+            vocabThemeObserver.observe(document.body, { attributes: true, attributeFilter: ['data-theme'] });
+
+            vocabGraphViz.setInteraction(true);
+            vocabGraphViz.start();
+            vocabGraphInitialized = true;
+          } catch (e) {
+            console.warn('Vocab Graph init failed:', e);
+            if (legendEl) {
+              legendEl.innerHTML = '<span style="color:#999">Graph could not be loaded. Refresh to try again.</span>';
+            }
+          }
+        }
+      })();
+    </script>
 </body>
 </html>

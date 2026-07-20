@@ -8,6 +8,124 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@700&family=Nunito+Sans:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./styles.css">
+    <style>
+        /* ── Graph mode toggle ── */
+        .gk-mode-toggle {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            justify-content: center;
+        }
+        .gk-mode-btn {
+            font-family: var(--font-din-round, 'Nunito Sans', sans-serif);
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.053em;
+            text-transform: uppercase;
+            padding: 10px 24px;
+            border: 2px solid var(--color-cloud-gray);
+            border-radius: var(--radius-buttons, 12px);
+            background: var(--color-snow-white);
+            color: var(--color-silver);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 0 var(--color-cloud-gray);
+        }
+        .gk-mode-btn:active {
+            transform: translateY(4px);
+            box-shadow: none !important;
+        }
+        .gk-mode-btn.active {
+            background: var(--color-duo-green);
+            color: var(--color-snow-white);
+            border-color: var(--color-duo-green);
+            box-shadow: 0 4px 0 var(--shadow-primary);
+        }
+        .gk-mode-btn.active:hover {
+            background: #4db800;
+        }
+
+        /* ── Graph container ── */
+        .gk-graph-container {
+            display: none;
+            flex-direction: column;
+            flex-grow: 1;
+            width: 100%;
+            padding: 8px 0;
+            box-sizing: border-box;
+        }
+        .gk-graph-container.active {
+            display: flex;
+        }
+        .gk-graph-canvas-wrap {
+            flex-grow: 1;
+            position: relative;
+            min-height: 350px;
+            max-height: 520px;
+            width: 100%;
+            border-radius: var(--radius-cards, 16px);
+            overflow: hidden;
+            background: radial-gradient(ellipse at center, rgba(88,204,2,0.05) 0%, transparent 70%);
+        }
+        .gk-graph-canvas-wrap canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            touch-action: none;
+        }
+
+        /* ── Graph legend ── */
+        .gk-graph-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 16px;
+            justify-content: center;
+            padding: 16px 0 4px;
+        }
+        .gk-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--color-graphite);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .gk-legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* ── Graph instructions ── */
+        .gk-graph-instruction {
+            text-align: center;
+            font-size: 12px;
+            color: var(--color-silver);
+            font-weight: 600;
+            padding: 4px 0 8px;
+            letter-spacing: 0.03em;
+        }
+
+        @media (max-width: 500px) {
+            .gk-graph-canvas-wrap {
+                min-height: 280px;
+                max-height: 400px;
+            }
+            .gk-mode-btn {
+                font-size: 12px;
+                padding: 8px 16px;
+            }
+            .gk-graph-legend {
+                gap: 4px 10px;
+            }
+            .gk-legend-item {
+                font-size: 10px;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -39,7 +157,18 @@
             </div>
         </div>
 
-        <div class="card-wrapper">
+        <!-- Mode toggle: Cards | Knowledge Map -->
+        <div class="gk-mode-toggle">
+            <button class="gk-mode-btn active" id="gkModeCards" onclick="switchGKMode('cards')" type="button">
+                <span>📇</span> Cards
+            </button>
+            <button class="gk-mode-btn" id="gkModeMap" onclick="switchGKMode('map')" type="button">
+                <span>🌐</span> Knowledge Map
+            </button>
+        </div>
+
+        <!-- Flashcard area (shown in Cards mode) -->
+        <div class="card-wrapper" id="gkCardArea">
             <div class="card-scene" id="card-scene">
                 <div class="card" id="flashcard">
                     <div class="card-face card-front">
@@ -56,7 +185,16 @@
             </div>
         </div>
 
-        <div class="controls">
+        <!-- Knowledge Map area (shown in Map mode) -->
+        <div class="gk-graph-container" id="gkGraphArea">
+            <div class="gk-graph-canvas-wrap" id="gkGraphCanvasWrap">
+                <canvas id="gkGraphCanvas"></canvas>
+            </div>
+            <div class="gk-graph-instruction">Drag to rotate · Scroll to zoom · Click a node to learn more</div>
+            <div class="gk-graph-legend" id="gkGraphLegend"></div>
+        </div>
+
+        <div class="controls" id="gkControls">
             <button class="btn-nav" id="btn-prev" onclick="prevCard()">Prev</button>
             <button class="btn-primary" id="btn-flip" onclick="flipCard()">Flip Card</button>
             <button class="btn-nav" id="btn-next" onclick="nextCard()">Next</button>
@@ -69,5 +207,114 @@
          is defined when app.js initializes. -->
     <script src="./data.js"></script>
     <script src="./app.js"></script>
+
+    <!-- 3D Knowledge Graph: renderer + GK data + init -->
+    <script src="./graph-3d.js"></script>
+    <script src="./gk-graph-data.js"></script>
+    <script>
+      (function () {
+        'use strict';
+
+        var gkGraphViz = null;
+        var gkGraphInitialized = false;
+        var gkResizeListener = null;
+        var gkThemeObserver = null;
+
+        // Detect dark mode
+        function gkIsDark() {
+          return document.body.getAttribute('data-theme') === 'dark';
+        }
+
+        function gkGetEdgeColor() {
+          return gkIsDark() ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)';
+        }
+
+        // Mode toggle
+        window.switchGKMode = function (mode) {
+          var isMap = mode === 'map';
+          document.getElementById('gkModeCards').classList.toggle('active', !isMap);
+          document.getElementById('gkModeMap').classList.toggle('active', isMap);
+          document.getElementById('gkCardArea').style.display = isMap ? 'none' : '';
+          document.getElementById('gkGraphArea').classList.toggle('active', isMap);
+          document.getElementById('gkControls').style.display = isMap ? 'none' : '';
+
+          if (isMap) {
+            initGKGraph();
+          }
+        };
+
+        function initGKGraph() {
+          if (gkGraphInitialized) return;
+          var canvas = document.getElementById('gkGraphCanvas');
+          if (!canvas) return;
+
+          var data = gkGraphData;
+
+          // Build legend
+          var legendEl = document.getElementById('gkGraphLegend');
+          if (legendEl) {
+            var cats = data.categories;
+            var legendHtml = '';
+            var catNames = Object.keys(cats).sort();
+            for (var ci = 0; ci < catNames.length; ci++) {
+              var name = catNames[ci];
+              var info = cats[name];
+              legendHtml +=
+                '<span class="gk-legend-item">' +
+                '<span class="gk-legend-dot" style="background:' + info.color + '"></span>' +
+                name + ' (' + info.count + ')' +
+                '</span>';
+            }
+            legendEl.innerHTML = legendHtml;
+          }
+
+          try {
+            gkGraphViz = new Graph3D(canvas, {
+              nodes: data.nodes,
+              edges: data.edges
+            });
+
+            gkGraphViz.bgColor = 'transparent';
+            gkGraphViz.nodeRadius = 7;
+            gkGraphViz.edgeColor = gkGetEdgeColor();
+            gkGraphViz.edgeWidth = 1.0;
+            gkGraphViz.labelFont = 'bold 11px "Nunito Sans", system-ui, sans-serif';
+
+            // Resize to fit container
+            var wrap = document.getElementById('gkGraphCanvasWrap');
+            function resizeCanvas() {
+              var rect = wrap.getBoundingClientRect();
+              canvas.style.width = rect.width + 'px';
+              canvas.style.height = rect.height + 'px';
+              if (gkGraphViz) gkGraphViz._resize();
+            }
+            resizeCanvas();
+
+            // Remove old listener before adding new one (prevents stacking)
+            if (gkResizeListener) window.removeEventListener('resize', gkResizeListener);
+            gkResizeListener = resizeCanvas;
+            window.addEventListener('resize', gkResizeListener);
+
+            // Watch for theme changes to update edge color
+            if (gkThemeObserver) gkThemeObserver.disconnect();
+            gkThemeObserver = new MutationObserver(function () {
+              if (gkGraphViz) {
+                gkGraphViz.edgeColor = gkGetEdgeColor();
+              }
+            });
+            gkThemeObserver.observe(document.body, { attributes: true, attributeFilter: ['data-theme'] });
+
+            gkGraphViz.setInteraction(true);
+            gkGraphViz.start();
+            gkGraphInitialized = true;
+          } catch (e) {
+            console.warn('GK Graph init failed:', e);
+            if (legendEl) {
+              legendEl.innerHTML = '<span style="color:#999">Graph could not be loaded. Refresh to try again.</span>';
+            }
+          }
+        }
+      })();
+    </script>
 </body>
 </html>
