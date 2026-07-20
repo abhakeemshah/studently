@@ -20,6 +20,41 @@
         .browse-search-clear { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; border-radius: 50%; border: none; background: var(--color-cloud-gray); color: var(--color-graphite); font-size: 12px; cursor: pointer; display: none; align-items: center; justify-content: center; line-height: 1; padding: 0; }
         .browse-search-clear:hover { background: var(--color-silver); color: white; }
         .browse-search-count { text-align: center; font-size: 13px; font-weight: 600; color: var(--color-graphite); margin-bottom: 16px; display: none; }
+        .browse-mode-bar { display: flex; justify-content: center; gap: 8px; margin-bottom: 24px; }
+        .browse-mode-btn { padding: 7px 18px; font-family: var(--font-din-round); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; border-radius: 8px; border: 1.5px solid var(--color-cloud-gray); background: var(--color-snow-white); color: var(--color-graphite); cursor: pointer; transition: all 0.15s ease; }
+        .browse-mode-btn:hover { border-color: var(--color-grape-soda); color: var(--color-grape-soda); }
+        .browse-mode-btn.is-active { background: var(--color-grape-soda); border-color: var(--color-grape-soda); color: white; }
+        [data-theme="dark"] .browse-mode-btn { background: #1e293b; border-color: #334155; color: var(--color-silver); }
+        [data-theme="dark"] .browse-mode-btn:hover { border-color: var(--color-grape-soda); color: var(--color-grape-soda); }
+        [data-theme="dark"] .browse-mode-btn.is-active { background: var(--color-grape-soda); border-color: var(--color-grape-soda); color: white; }
+
+        /* Index view */
+        .browse-index { display: none; }
+        .browse-index.is-visible { display: block; }
+        .browse-categories.is-visible { display: block; }
+        .browse-categories { display: block; }
+        .browse-categories.is-hidden-state { display: none; }
+        .browse-index-row { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-radius: 10px; margin-bottom: 4px; border: 1px solid var(--color-cloud-gray); background: var(--color-snow-white); transition: background 0.1s ease; }
+        .browse-index-row:hover { background: rgba(0,0,0,0.015); }
+        .browse-index-num { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: var(--font-feather); font-size: 13px; font-weight: 700; color: white; flex-shrink: 0; background: var(--color-graphite); }
+        .browse-index-num--even { background: var(--color-silver); }
+        .browse-index-word { font-family: var(--font-feather); font-weight: 700; font-size: 15px; color: var(--color-almost-black); flex-shrink: 0; min-width: 100px; }
+        .browse-index-cat { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-graphite); flex-shrink: 0; min-width: 80px; padding: 3px 10px; border-radius: 6px; background: var(--color-cloud-gray); }
+        .browse-index-cat-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+        .browse-index-meaning { font-size: 12px; color: var(--color-graphite); line-height: 1.3; flex-grow: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: 0.75; }
+        [data-theme="dark"] .browse-index-row { background: #1e293b; border-color: #334155; }
+        [data-theme="dark"] .browse-index-row:hover { background: #0f172a; }
+        [data-theme="dark"] .browse-index-word { color: var(--text-main); }
+        [data-theme="dark"] .browse-index-cat { background: #334155; color: var(--color-silver); }
+        [data-theme="dark"] .browse-index-num { background: var(--color-silver); }
+        [data-theme="dark"] .browse-index-num--even { background: #334155; }
+
+        @media (max-width: 700px) {
+          .browse-index-row { flex-wrap: wrap; gap: 6px; padding: 8px 12px; }
+          .browse-index-word { min-width: 0; font-size: 14px; }
+          .browse-index-cat { min-width: 0; font-size: 10px; }
+          .browse-index-meaning { width: 100%; white-space: normal; }
+        }
         .browse-card.is-hidden { display: none; }
         .browse-item.is-highlighted { background: rgba(165,112,255,0.08); border-color: var(--color-grape-soda); }
         .browse-item.is-muted { opacity: 0.3; }
@@ -103,11 +138,16 @@
                     <button class="browse-search-clear" id="vocabSearchClear" aria-label="Clear search">✕</button>
                 </div>
                 <div class="browse-search-count" id="vocabSearchCount"></div>
+                <div class="browse-mode-bar">
+                    <button class="browse-mode-btn is-active" id="vocabModeCats" type="button">📂 Categories</button>
+                    <button class="browse-mode-btn" id="vocabModeIndex" type="button">📋 Numbered Index</button>
+                </div>
                 <div class="browse-search-empty" id="vocabSearchEmpty">
                     <div class="browse-search-empty-icon">🔍</div>
                     <p>No words found. Try a different search term.</p>
                 </div>
-                <div class="browse-grid" id="vocabGrid"></div>
+                <div class="browse-categories is-visible" id="vocabCategories"><div class="browse-grid" id="vocabGrid"></div></div>
+                <div class="browse-index" id="vocabIndex"></div>
                 <div class="browse-actions">
                     <a class="browse-btn browse-btn--vocab" href="./vocab.html">📇 Study with flashcards</a>
                     <a class="browse-btn browse-btn--outline" href="./index.html">🏠 Back to Home</a>
@@ -171,14 +211,19 @@
           if (!q) {
             searchCount.style.display = 'none';
             searchEmpty.style.display = 'none';
-            cardOrder.forEach(function (c) { grid.appendChild(c); });
-            allItems.forEach(function (x) {
-              x.card.classList.remove('is-hidden');
-              x.el.classList.remove('is-highlighted', 'is-muted');
-              x.card.classList.remove('open');
-            });
+            if (indexMode) {
+              indexRows.forEach(function (r) { r.el.style.display = ''; });
+            } else {
+              cardOrder.forEach(function (c) { grid.appendChild(c); });
+              allItems.forEach(function (x) {
+                x.card.classList.remove('is-hidden');
+                x.el.classList.remove('is-highlighted', 'is-muted');
+                x.card.classList.remove('open');
+              });
+            }
             return;
           }
+          var isIndex = indexMode;
           var anyMatch = false;
           var matchCount = 0;
           // Pass 1: highlight matching items, mute non-matching
@@ -187,33 +232,84 @@
             if (match) { anyMatch = true; matchCount++; x.el.classList.add('is-highlighted'); x.el.classList.remove('is-muted'); }
             else { x.el.classList.add('is-muted'); x.el.classList.remove('is-highlighted'); }
           });
-          // Pass 2: sort cards — matched cards to top of grid, unmatched hidden
-          var matchedCards = [], unmatchedCards = [];
-          cardOrder.forEach(function (card) {
-            var hasMatch = false;
-            allItems.forEach(function (x) { if (x.card === card && x.text.indexOf(q) !== -1) hasMatch = true; });
-            if (hasMatch) matchedCards.push(card); else unmatchedCards.push(card);
-          });
-          matchedCards.forEach(function (c) { grid.appendChild(c); c.classList.remove('is-hidden'); c.classList.add('open'); });
-          unmatchedCards.forEach(function (c) { grid.appendChild(c); c.classList.add('is-hidden'); c.classList.remove('open'); });
-          // Pass 3: within each matched card, matching items come before non-matching
-          matchedCards.forEach(function (card) {
-            var body = card.querySelector('.browse-card-body');
-            if (!body) return;
-            var items = [].slice.call(body.querySelectorAll('.browse-item'));
-            var matched = [], unmatched = [];
-            items.forEach(function (el) {
-              if (el.classList.contains('is-highlighted')) matched.push(el); else unmatched.push(el);
+
+          if (!isIndex) {
+            // Category mode: sort cards
+            var matchedCards = [], unmatchedCards = [];
+            cardOrder.forEach(function (card) {
+              var hasMatch = false;
+              allItems.forEach(function (x) { if (x.card === card && x.text.indexOf(q) !== -1) hasMatch = true; });
+              if (hasMatch) matchedCards.push(card); else unmatchedCards.push(card);
             });
-            matched.forEach(function (el) { body.appendChild(el); });
-            unmatched.forEach(function (el) { body.appendChild(el); });
-          });
+            matchedCards.forEach(function (c) { grid.appendChild(c); c.classList.remove('is-hidden'); c.classList.add('open'); });
+            unmatchedCards.forEach(function (c) { grid.appendChild(c); c.classList.add('is-hidden'); c.classList.remove('open'); });
+            matchedCards.forEach(function (card) {
+              var body = card.querySelector('.browse-card-body');
+              if (!body) return;
+              var items = [].slice.call(body.querySelectorAll('.browse-item'));
+              var matched = [], unmatched = [];
+              items.forEach(function (el) {
+                if (el.classList.contains('is-highlighted')) matched.push(el); else unmatched.push(el);
+              });
+              matched.forEach(function (el) { body.appendChild(el); });
+              unmatched.forEach(function (el) { body.appendChild(el); });
+            });
+          } else {
+            // Index mode: filter index rows
+            var rows = indexRows;
+            rows.forEach(function (r) {
+              var match = r.text.indexOf(q) !== -1;
+              r.el.style.display = match ? '' : 'none';
+            });
+          }
           searchCount.style.display = 'block';
           searchCount.textContent = matchCount + ' result' + (matchCount !== 1 ? 's' : '') + ' for "' + searchInput.value.trim() + '"';
           searchEmpty.style.display = anyMatch ? 'none' : 'block';
         }
         searchInput.addEventListener('input', doSearch);
         searchClear.addEventListener('click', function () { searchInput.value = ''; searchInput.focus(); doSearch(); });
+
+        /* ── Index mode ── */
+        var indexMode = false, indexRows = [];
+        var indexContainer = document.getElementById('vocabIndex');
+        var catsContainer = document.getElementById('vocabCategories');
+        var modeCats = document.getElementById('vocabModeCats');
+        var modeIndex = document.getElementById('vocabModeIndex');
+        var catColorMap = {};
+        data.nodes.forEach(function (n) { catColorMap[n.category] = n.color; });
+
+        // Build index rows from all nodes
+        data.nodes.forEach(function (node, i) {
+          var row = document.createElement('div'); row.className = 'browse-index-row';
+          var catDisplay = node.category.charAt(0).toUpperCase() + node.category.slice(1);
+          var catColor = catColorMap[node.category] || '#a570ff';
+          var emoji = node.emoji || '';
+          row.innerHTML =
+            '<span class="browse-index-num' + (i % 2 === 0 ? '' : ' browse-index-num--even') + '">' + (i + 1) + '</span>' +
+            (emoji ? '<span style="font-size:16px;flex-shrink:0;">' + emoji + '</span>' : '') +
+            '<span class="browse-index-word">' + node.label + '</span>' +
+            '<span class="browse-index-cat"><span class="browse-index-cat-dot" style="background:' + catColor + '"></span>' + catDisplay + '</span>' +
+            '<span class="browse-index-meaning">' + (node.description || '') + '</span>';
+          indexContainer.appendChild(row);
+          indexRows.push({
+            el: row,
+            text: (node.label + ' ' + (node.description || '') + ' ' + catDisplay).toLowerCase()
+          });
+        });
+
+        function switchVocabMode(mode) {
+          indexMode = (mode === 'index');
+          modeCats.classList.toggle('is-active', !indexMode);
+          modeIndex.classList.toggle('is-active', indexMode);
+          catsContainer.classList.toggle('is-hidden-state', indexMode);
+          catsContainer.classList.toggle('is-visible', !indexMode);
+          indexContainer.classList.toggle('is-visible', indexMode);
+          // Re-run search to update visible state
+          doSearch();
+        }
+
+        modeCats.addEventListener('click', function () { switchVocabMode('cats'); });
+        modeIndex.addEventListener('click', function () { switchVocabMode('index'); });
       })();
     </script>
 </body>
