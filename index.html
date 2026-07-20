@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="description" content="Master Study Hub — explore 160 GK topics in a 3D knowledge graph and 103 vocabulary words in a synonym network. Interactive, visual, free.">
+    <meta name="description" content="Master Study Hub — browse 160 GK topics and 103 vocabulary words with connections shown as readable lists.">
     <meta name="theme-color" content="#58cc02">
     <title>Master Study Hub</title>
 
@@ -14,30 +14,29 @@
     <link rel="stylesheet" href="./landing.css">
     <style>
         /* ═══════════════════════════════════════════════════
-           POLISHED GRAPH SECTIONS — no jank, no shift
+           TEXT-BASED CONNECTION BROWSER
            ═══════════════════════════════════════════════════ */
 
-        .graph-section {
+        .browse-section {
             width: 100%;
-            padding: 56px 24px 72px;
+            padding: 48px 24px 64px;
         }
-        .graph-section--gk {
+        .browse-section--gk {
             background: var(--color-snow-white);
         }
-        .graph-section--vocab {
+        .browse-section--vocab {
             background: var(--color-section-alt, #f5f6f8);
         }
-
-        .graph-inner {
-            max-width: 1000px;
+        .browse-inner {
+            max-width: 960px;
             margin: 0 auto;
         }
 
-        .graph-head {
+        .browse-head {
             text-align: center;
-            margin-bottom: 28px;
+            margin-bottom: 32px;
         }
-        .graph-head-badge {
+        .browse-head-badge {
             display: inline-flex;
             align-items: center;
             gap: 6px;
@@ -49,113 +48,180 @@
             letter-spacing: 0.06em;
             margin-bottom: 12px;
         }
-        .graph-head-badge--gk {
+        .browse-head-badge--gk {
             background: var(--color-duo-green-light);
             color: var(--shadow-primary-green);
         }
-        .graph-head-badge--vocab {
+        .browse-head-badge--vocab {
             background: rgba(165, 112, 255, 0.12);
             color: var(--color-grape-soda);
         }
-        .graph-head h2 {
+        .browse-head h2 {
             font-family: var(--font-feather);
             font-weight: 700;
-            font-size: clamp(26px, 3.2vw, 36px);
+            font-size: clamp(24px, 3vw, 34px);
             letter-spacing: -0.02em;
             color: var(--color-almost-black);
             margin: 0 0 8px;
         }
-        .graph-head p {
+        .browse-head p {
             font-size: 15px;
-            line-height: 1.5;
             color: var(--color-graphite);
-            max-width: 540px;
+            max-width: 520px;
             margin: 0 auto;
         }
 
-        /* Graph frame — clean card with no animation */
-        .graph-frame {
-            position: relative;
-            width: 100%;
-            height: 340px;
-            border-radius: 14px;
-            overflow: hidden;
+        /* Category / Theme cards */
+        .browse-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .browse-card {
             border: 1.5px solid var(--color-cloud-gray);
+            border-radius: 12px;
+            overflow: hidden;
             background: var(--color-snow-white);
         }
-        .graph-frame canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-            touch-action: none;
+
+        .browse-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 18px;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.15s ease;
         }
-        .graph-frame.graph--gk {
-            background: radial-gradient(ellipse at 30% 40%, rgba(88,204,2,0.05) 0%, transparent 60%), var(--color-snow-white);
+        .browse-card-header:hover {
+            background: rgba(0,0,0,0.02);
         }
-        .graph-frame.graph--vocab {
-            background: radial-gradient(ellipse at 70% 50%, rgba(165,112,255,0.05) 0%, transparent 60%), var(--color-snow-white);
+        .browse-card-header:active {
+            background: rgba(0,0,0,0.04);
         }
 
-        /* Instructions — compact bar */
-        .graph-toolbar {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: center;
-            gap: 10px 20px;
-            margin-top: 12px;
-        }
-        .graph-toolbar-item {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--color-silver);
-        }
-        .graph-toolbar-dot {
-            width: 3px; height: 3px; border-radius: 50%;
-            background: var(--color-silver);
-            opacity: 0.4;
-        }
-
-        /* Legend — compact */
-        .graph-legend {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px 12px;
-            justify-content: center;
-            margin-top: 10px;
-            min-height: 18px;
-        }
-        .graph-legend-item {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 10px;
-            font-weight: 700;
-            color: var(--color-graphite);
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-        .graph-legend-dot {
-            width: 8px; height: 8px; border-radius: 50%;
+        .browse-card-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
             flex-shrink: 0;
         }
+        .browse-card-title {
+            font-family: var(--font-feather);
+            font-weight: 700;
+            font-size: 17px;
+            color: var(--color-almost-black);
+            flex-grow: 1;
+        }
+        .browse-card-count {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--color-silver);
+            background: var(--color-cloud-gray);
+            padding: 2px 10px;
+            border-radius: 999px;
+        }
+        .browse-card-toggle {
+            font-size: 14px;
+            color: var(--color-silver);
+            transition: transform 0.2s ease;
+            width: 20px;
+            text-align: center;
+        }
+        .browse-card.open .browse-card-toggle {
+            transform: rotate(90deg);
+        }
 
-        /* CTA buttons row */
-        .graph-actions {
+        .browse-card-body {
+            display: none;
+            padding: 4px 18px 18px;
+        }
+        .browse-card.open .browse-card-body {
+            display: block;
+        }
+
+        /* Each item in a category */
+        .browse-item {
+            padding: 10px 14px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            border: 1px solid var(--color-cloud-gray);
+            transition: border-color 0.15s ease;
+        }
+        .browse-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .browse-item-main {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .browse-item-emoji {
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .browse-item-label {
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--color-almost-black);
+        }
+        .browse-item-desc {
+            font-size: 13px;
+            color: var(--color-graphite);
+            line-height: 1.4;
+            margin-top: 4px;
+            padding-left: 30px;
+        }
+
+        /* Connected items shown as pills */
+        .browse-item-conns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 6px;
+            padding-left: 30px;
+        }
+        .browse-conn-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--color-graphite);
+            background: var(--color-cloud-gray);
+            padding: 2px 8px;
+            border-radius: 6px;
+        }
+        .browse-conn-pill::before {
+            content: "→";
+            font-weight: 400;
+            opacity: 0.6;
+        }
+
+        /* Vocab-specific: meaning shown inline */
+        .browse-item-meaning {
+            font-size: 12px;
+            color: var(--color-graphite);
+            line-height: 1.4;
+            margin-top: 4px;
+            padding-left: 30px;
+            opacity: 0.8;
+        }
+
+        /* Action buttons */
+        .browse-actions {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             gap: 10px;
-            margin-top: 18px;
+            margin-top: 24px;
         }
-        .graph-btn {
+        .browse-btn {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 11px 22px;
+            padding: 10px 20px;
             font-family: var(--font-din-round);
             font-weight: 700;
             font-size: 13px;
@@ -167,39 +233,39 @@
             transition: transform 0.1s ease, box-shadow 0.1s ease;
             border: none;
         }
-        .graph-btn:active {
+        .browse-btn:active {
             transform: translateY(3px);
             box-shadow: none !important;
         }
-        .graph-btn--gk {
+        .browse-btn--gk {
             background: var(--color-duo-green);
             color: white;
             box-shadow: 0 4px 0 var(--shadow-primary-green);
         }
-        .graph-btn--gk:hover {
+        .browse-btn--gk:hover {
             background: #4db800;
         }
-        .graph-btn--vocab {
+        .browse-btn--vocab {
             background: var(--color-grape-soda);
             color: white;
             box-shadow: 0 4px 0 #7b3fe0;
         }
-        .graph-btn--vocab:hover {
+        .browse-btn--vocab:hover {
             background: #9035e0;
         }
-        .graph-btn--outline {
+        .browse-btn--outline {
             background: var(--color-snow-white);
             color: var(--color-sky-blue);
             border: 1.5px solid var(--color-cloud-gray);
             box-shadow: 0 3px 0 var(--color-cloud-gray);
         }
-        .graph-btn--outline:hover {
+        .browse-btn--outline:hover {
             border-color: var(--color-sky-blue);
         }
 
-        /* Stats section */
-        .graph-section--stats {
-            padding: 40px 24px 56px;
+        /* Stats */
+        .browse-section--stats {
+            padding: 32px 24px 48px;
         }
         .stats-grid {
             display: grid;
@@ -210,7 +276,7 @@
         }
         .stat-card {
             text-align: center;
-            padding: 20px 12px;
+            padding: 18px 12px;
             border-radius: 12px;
             border: 1.5px solid var(--color-cloud-gray);
             background: var(--color-snow-white);
@@ -218,10 +284,9 @@
         .stat-card-value {
             font-family: var(--font-feather);
             font-weight: 700;
-            font-size: 28px;
+            font-size: 26px;
             color: var(--color-duo-green);
             letter-spacing: -0.02em;
-            line-height: 1.1;
         }
         .stat-card:nth-child(2) .stat-card-value { color: var(--color-sky-blue); }
         .stat-card:nth-child(3) .stat-card-value { color: #d18b00; }
@@ -231,24 +296,33 @@
             color: var(--color-silver);
             text-transform: uppercase;
             letter-spacing: 0.06em;
-            margin-top: 6px;
+            margin-top: 4px;
         }
 
         /* Dark mode */
         [data-theme="dark"] {
             --color-section-alt: #0a0f1d;
         }
-        [data-theme="dark"] .graph-frame {
-            border-color: #1e293b;
+        [data-theme="dark"] .browse-card {
+            background: #1e293b;
+            border-color: #334155;
+        }
+        [data-theme="dark"] .browse-card-header:hover {
+            background: rgba(255,255,255,0.03);
+        }
+        [data-theme="dark"] .browse-item {
+            border-color: #334155;
             background: #0f172a;
         }
-        [data-theme="dark"] .graph-frame.graph--gk {
-            background: radial-gradient(ellipse at 30% 40%, rgba(88,204,2,0.07) 0%, transparent 60%), #0f172a;
+        [data-theme="dark"] .browse-conn-pill {
+            background: #334155;
+            color: var(--color-graphite);
         }
-        [data-theme="dark"] .graph-frame.graph--vocab {
-            background: radial-gradient(ellipse at 70% 50%, rgba(165,112,255,0.07) 0%, transparent 60%), #0f172a;
+        [data-theme="dark"] .browse-card-count {
+            background: #334155;
+            color: var(--color-silver);
         }
-        [data-theme="dark"] .graph-btn--outline {
+        [data-theme="dark"] .browse-btn--outline {
             background: #1e293b;
             border-color: #334155;
             color: var(--color-sky-blue);
@@ -257,28 +331,25 @@
             background: #1e293b;
             border-color: #334155;
         }
-        [data-theme="dark"] .graph-section--gk {
+        [data-theme="dark"] .browse-section--gk {
             background: #0f172a;
         }
-        [data-theme="dark"] .graph-section--vocab {
+        [data-theme="dark"] .browse-section--vocab {
             background: #0a0f1d;
         }
 
         @media (max-width: 700px) {
-            .graph-frame { height: 280px; }
-            .graph-section { padding: 40px 16px 56px; }
-            .graph-head p { font-size: 14px; }
+            .browse-section { padding: 32px 16px 48px; }
+            .browse-card-title { font-size: 15px; }
+            .browse-item-label { font-size: 14px; }
             .stats-grid { gap: 8px; }
             .stat-card-value { font-size: 22px; }
-            .stat-card { padding: 16px 8px; }
         }
         @media (max-width: 480px) {
-            .graph-frame { height: 220px; border-radius: 10px; }
-            .graph-head h2 { font-size: 24px; }
-            .graph-actions { flex-direction: column; align-items: stretch; }
-            .graph-btn { justify-content: center; }
-            .graph-toolbar { gap: 6px 12px; }
-            .graph-toolbar-item { font-size: 11px; }
+            .browse-head h2 { font-size: 22px; }
+            .browse-actions { flex-direction: column; align-items: stretch; }
+            .browse-btn { justify-content: center; }
+            .browse-item-emoji { font-size: 16px; }
         }
     </style>
 </head>
@@ -286,7 +357,6 @@
 
     <div class="page-backdrop" aria-hidden="true"></div>
 
-    <!-- Top bar: brand + theme toggle only — clean and minimal -->
     <header class="topbar" role="banner">
         <a href="./index.html" class="brand" aria-label="Master Study Hub — home">
             <span class="brand-dot" aria-hidden="true"></span>
@@ -297,52 +367,42 @@
 
     <main id="main-content">
 
-        <!-- Hero — clean, centered, no parallax jank -->
+        <!-- Hero -->
         <section class="hero" aria-labelledby="hero-title">
             <div class="hero-blob-layer hero-blob-layer--back" aria-hidden="true"></div>
             <div class="hero-blob-layer hero-blob-layer--mid" aria-hidden="true"></div>
             <div class="hero-copy">
                 <span class="hero-eyebrow">
                     <span class="pulse" aria-hidden="true"></span>
-                    <span>3D interactive maps</span>
+                    <span>knowledge browser</span>
                 </span>
                 <h1 id="hero-title" class="hero-title">
-                    <span class="hero-line" data-delay="0">explore knowledge.</span><br>
-                    <span class="hero-line accent" data-delay="200">visually.</span>
+                    <span class="hero-line" data-delay="0">everything connected.</span><br>
+                    <span class="hero-line accent" data-delay="200">plain text.</span>
                 </h1>
                 <p class="hero-subhead">
-                    Drag, zoom, and click through <strong>160 GK topics</strong> connected by geography, history &amp; culture.
-                    Or explore <strong>103 vocabulary words</strong> linked by meaning. No signup, no tracking.
+                    Browse <strong>160 GK topics</strong> by category — see how countries connect to capitals, rivers, mountains &amp; more.
+                    Or explore <strong>103 vocabulary words</strong> with their meanings and synonym links. Clean, simple, readable.
                 </p>
                 <div class="hero-cta-row">
-                    <a class="btn-cta-primary" href="#gk-graph">
-                        <span>Knowledge Map</span>
+                    <a class="btn-cta-primary" href="#gk-browse">
+                        <span>Browse Knowledge</span>
                         <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
                             <path fill="currentColor" d="M5 12h11.17l-4.88-4.88c-.39-.39-.39-1.03 0-1.42a.9959.9959 0 0 1 1.41 0l6.59 6.59a.9959.9959 0 0 1 0 1.41l-6.59 6.59a.9959.9959 0 0 1-1.41-0.0001c-.39-.39-.39-1.02 0-1.41L16.17 14H5c-.55 0-1-.45-1-1s.45-1 1-1z"/>
                         </svg>
                     </a>
-                    <a class="btn-cta-secondary" href="#vocab-graph">
+                    <a class="btn-cta-secondary" href="#vocab-browse">
                         <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-                            <path fill="currentColor" d="M21 4c-1.1 0-2 .9-2 2v13H5c-.55 0-1 .45-1 1s.45 1 1 1h15c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-9 4c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zM5 6c1.1 0 2 .9 2 2s-.9 2-2 2H4V7c0-.55.45-1 1-1zm0 6h2c1.1 0 2 .9 2 2s-.9 2-2 2H4v-3c0-.55.45-1 1-1z"/>
+                            <path fill="currentColor" d="M21 4c-1.1 0-2 .9-2 2v13H5c-.55 0-1 .45-1 1s.45 1 1 1h15c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2z"/>
                         </svg>
-                        <span>Word Map</span>
+                        <span>Browse Words</span>
                     </a>
-                </div>
-                <div class="hero-trust">
-                    <span class="avatar-stack" aria-hidden="true">
-                        <span class="avatar av-1">A</span>
-                        <span class="avatar av-2">H</span>
-                        <span class="avatar av-3">S</span>
-                        <span class="avatar av-4">M</span>
-                    </span>
-                    <span>Drag, zoom, click — learn visually</span>
                 </div>
             </div>
             <div class="hero-art" aria-hidden="true">
                 <svg viewBox="0 0 520 520" xmlns="http://www.w3.org/2000/svg">
                     <circle class="float-a" cx="60" cy="80" r="38" fill="#ffe066" opacity="0.7"/>
                     <circle class="float-b" cx="470" cy="430" r="48" fill="#a570ff" opacity="0.55"/>
-                    <circle class="float-c" cx="460" cy="60" r="22" fill="#cc348d" opacity="0.5"/>
                     <ellipse cx="260" cy="470" rx="170" ry="14" fill="#3c3c3c" opacity="0.10"/>
                     <g class="float-c" transform-origin="260 290">
                         <path d="M120 280 C120 200, 175 140, 260 140 C345 140, 400 200, 400 280 C400 360, 360 410, 320 425 C290 432, 230 432, 200 425 C160 410, 120 360, 120 280 Z" fill="#58cc02"/>
@@ -351,81 +411,47 @@
                         <ellipse cx="300" cy="280" rx="28" ry="34" fill="#ffffff"/>
                         <circle cx="226" cy="288" r="9" fill="#3c3c3c"/>
                         <circle cx="306" cy="288" r="9" fill="#3c3c3c"/>
-                        <circle cx="223" cy="284" r="3" fill="#ffffff"/>
-                        <circle cx="303" cy="284" r="3" fill="#ffffff"/>
                         <ellipse cx="180" cy="330" rx="18" ry="10" fill="#cc348d" opacity="0.35"/>
                         <ellipse cx="340" cy="330" rx="18" ry="10" fill="#cc348d" opacity="0.35"/>
                         <path d="M222 360 Q260 395 300 360" fill="none" stroke="#3c3c3c" stroke-width="6" stroke-linecap="round"/>
-                    </g>
-                    <g class="float-a" transform="translate(370 175)">
-                        <path d="M0 0 L-22 38 L-6 38 L-22 78 L20 30 L4 30 Z" fill="#ffc700" stroke="#3c3c3c" stroke-width="3" stroke-linejoin="round"/>
                     </g>
                 </svg>
             </div>
         </section>
 
-        <!-- ─── GK KNOWLEDGE MAP ─── -->
-        <section class="graph-section graph-section--gk" id="gk-graph" aria-labelledby="gk-title">
-            <div class="graph-inner">
-                <div class="graph-head">
-                    <span class="graph-head-badge graph-head-badge--gk">🌐 Knowledge Map</span>
-                    <h2 id="gk-title">General Knowledge Graph</h2>
-                    <p><strong>160+ topics</strong> — countries, rivers, capitals, organizations, events — connected in a 3D network. Drag to orbit, scroll to zoom, click to learn.</p>
+        <!-- ─── GK KNOWLEDGE BROWSER ─── -->
+        <section class="browse-section browse-section--gk" id="gk-browse">
+            <div class="browse-inner">
+                <div class="browse-head">
+                    <span class="browse-head-badge browse-head-badge--gk">🌐 Knowledge Browser</span>
+                    <h2>General Knowledge — by Category</h2>
+                    <p>Countries, rivers, mountains, capitals, organizations, events, and more. Each entry lists what it connects to. Click any section to expand.</p>
                 </div>
-
-                <div class="graph-frame graph--gk" id="gkGraphWrap">
-                    <canvas id="gkGraphCanvas"></canvas>
-                </div>
-
-                <div class="graph-toolbar">
-                    <span class="graph-toolbar-item">🖱️ Drag to rotate</span>
-                    <span class="graph-toolbar-dot"></span>
-                    <span class="graph-toolbar-item">🔍 Scroll to zoom</span>
-                    <span class="graph-toolbar-dot"></span>
-                    <span class="graph-toolbar-item">👆 Click to inspect</span>
-                </div>
-
-                <div class="graph-legend" id="gkGraphLegend"></div>
-
-                <div class="graph-actions">
-                    <a class="graph-btn graph-btn--gk" href="./gk.html">📇 Study with flashcards</a>
-                    <a class="graph-btn graph-btn--outline" href="#vocab-graph">↓ Word Map</a>
+                <div class="browse-grid" id="gkGrid"></div>
+                <div class="browse-actions">
+                    <a class="browse-btn browse-btn--gk" href="./gk.html">📇 Study with flashcards</a>
+                    <a class="browse-btn browse-btn--outline" href="#vocab-browse">↓ Browse Vocabulary</a>
                 </div>
             </div>
         </section>
 
-        <!-- ─── VOCAB WORD MAP ─── -->
-        <section class="graph-section graph-section--vocab" id="vocab-graph" aria-labelledby="vocab-title">
-            <div class="graph-inner">
-                <div class="graph-head">
-                    <span class="graph-head-badge graph-head-badge--vocab">🔗 Word Map</span>
-                    <h2 id="vocab-title">Vocabulary Synonym Network</h2>
-                    <p><strong>103 words</strong> across 9 themes — negotiation, obstacles, clarity, emotions, actions, and more — connected by meaning and synonym relationships.</p>
+        <!-- ─── VOCAB WORD BROWSER ─── -->
+        <section class="browse-section browse-section--vocab" id="vocab-browse">
+            <div class="browse-inner">
+                <div class="browse-head">
+                    <span class="browse-head-badge browse-head-badge--vocab">🔗 Word Browser</span>
+                    <h2>Vocabulary — by Theme</h2>
+                    <p>103 words across 9 themes. Each word shows its meaning and connected synonyms. Click any section to expand.</p>
                 </div>
-
-                <div class="graph-frame graph--vocab" id="vocabGraphWrap">
-                    <canvas id="vocabGraphCanvas"></canvas>
-                </div>
-
-                <div class="graph-toolbar">
-                    <span class="graph-toolbar-item">🖱️ Drag to rotate</span>
-                    <span class="graph-toolbar-dot"></span>
-                    <span class="graph-toolbar-item">🔍 Scroll to zoom</span>
-                    <span class="graph-toolbar-dot"></span>
-                    <span class="graph-toolbar-item">👆 Click for meaning</span>
-                </div>
-
-                <div class="graph-legend" id="vocabGraphLegend"></div>
-
-                <div class="graph-actions">
-                    <a class="graph-btn graph-btn--vocab" href="./vocab.html">📇 Study with flashcards</a>
-                    <a class="graph-btn graph-btn--outline" href="#gk-graph">↑ Knowledge Map</a>
+                <div class="browse-grid" id="vocabGrid"></div>
+                <div class="browse-actions">
+                    <a class="browse-btn browse-btn--vocab" href="./vocab.html">📇 Study with flashcards</a>
+                    <a class="browse-btn browse-btn--outline" href="#gk-browse">↑ Browse Knowledge</a>
                 </div>
             </div>
         </section>
 
-        <!-- ─── STATS ─── -->
-        <section class="graph-section graph-section--stats" aria-label="Quick stats">
+        <section class="browse-section browse-section--stats" aria-label="Quick stats">
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-card-value">160+</div>
@@ -445,96 +471,179 @@
     </main>
 
     <footer class="landing-footer" role="contentinfo">
-        Made with <span aria-hidden="true">❤️</span> — no signup, no tracking, all progress stays on your device.
-        &nbsp;·&nbsp;
-        <a href="./gk.html">GK Cards</a>
-        &nbsp;·&nbsp;
-        <a href="./vocab.html">Vocab Cards</a>
+        Made with <span aria-hidden="true">❤️</span> — no signup, no tracking.
+        <a href="./gk.html">GK Cards</a> · <a href="./vocab.html">Vocab Cards</a>
     </footer>
 
     <script src="./landing.js"></script>
-    <script src="./graph-3d.js"></script>
     <script src="./gk-graph-data.js"></script>
     <script src="./vocab-graph-data.js"></script>
     <script>
       (function () {
         'use strict';
 
-        function isDark() { return document.body.getAttribute('data-theme') === 'dark'; }
-        function edgeColor() { return isDark() ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'; }
+        // ── Build GK browser ──
+        var gkData = gkGraphData;
+        var gkGrid = document.getElementById('gkGrid');
+        if (gkGrid) {
+            // Build a lookup: node id → node
+            var nodeMap = {};
+            gkData.nodes.forEach(function (n) { nodeMap[n.id] = n; });
 
-        // ── GK Graph ──
-        var gkViz = null, gkInit = false, gkObs = false, gkTheme = null;
-        function initGK() {
-          if (gkInit) return;
-          var canvas = document.getElementById('gkGraphCanvas');
-          if (!canvas) return;
-          var data = gkGraphData;
-          var leg = document.getElementById('gkGraphLegend');
-          if (leg) {
-            var names = Object.keys(data.categories).sort(), h = '';
-            for (var i = 0; i < names.length; i++) {
-              var c = data.categories[names[i]];
-              h += '<span class="graph-legend-item"><span class="graph-legend-dot" style="background:' + c.color + '"></span>' + names[i] + ' (' + c.count + ')</span>';
-            }
-            leg.innerHTML = h;
-          }
-          try {
-            gkViz = new Graph3D(canvas, { nodes: data.nodes, edges: data.edges });
-            gkViz.nodeRadius = 6; gkViz.edgeColor = edgeColor(); gkViz.edgeWidth = 0.8; gkViz.labelFont = 'bold 10px "Nunito Sans", system-ui, sans-serif';
-            var wrap = document.getElementById('gkGraphWrap');
-            function res() { var r = wrap.getBoundingClientRect(); canvas.style.width = r.width + 'px'; canvas.style.height = r.height + 'px'; if (gkViz) gkViz._resize(); }
-            res(); window.addEventListener('resize', res);
-            if (gkTheme) gkTheme.disconnect();
-            gkTheme = new MutationObserver(function () { if (gkViz) gkViz.edgeColor = edgeColor(); });
-            gkTheme.observe(document.body, { attributes: true, attributeFilter: ['data-theme'] });
-            gkViz.setInteraction(true); gkViz.start(); gkInit = true;
-          } catch (e) { console.warn('GK:', e); }
+            // Build adjacency: node id → list of connected node ids
+            var adj = {};
+            gkData.edges.forEach(function (e) {
+                if (!adj[e.source]) adj[e.source] = [];
+                if (!adj[e.target]) adj[e.target] = [];
+                if (adj[e.source].indexOf(e.target) === -1) adj[e.source].push(e.target);
+                if (adj[e.target].indexOf(e.source) === -1) adj[e.target].push(e.source);
+            });
+
+            // Group nodes by category
+            var cats = {};
+            gkData.nodes.forEach(function (n) {
+                if (!cats[n.category]) cats[n.category] = [];
+                cats[n.category].push(n);
+            });
+
+            var catNames = Object.keys(cats).sort();
+            catNames.forEach(function (cat) {
+                var items = cats[cat];
+                var color = items[0].color || '#58cc02';
+                var card = document.createElement('div');
+                card.className = 'browse-card';
+
+                var header = document.createElement('div');
+                header.className = 'browse-card-header';
+                header.innerHTML =
+                    '<span class="browse-card-dot" style="background:' + color + '"></span>' +
+                    '<span class="browse-card-title">' + cat.charAt(0).toUpperCase() + cat.slice(1) + '</span>' +
+                    '<span class="browse-card-count">' + items.length + '</span>' +
+                    '<span class="browse-card-toggle">▶</span>';
+                header.addEventListener('click', function () {
+                    card.classList.toggle('open');
+                });
+                card.appendChild(header);
+
+                var body = document.createElement('div');
+                body.className = 'browse-card-body';
+
+                items.forEach(function (node) {
+                    var item = document.createElement('div');
+                    item.className = 'browse-item';
+
+                    var conns = adj[node.id] || [];
+                    var connLabels = [];
+                    conns.forEach(function (cid) {
+                        var cn = nodeMap[cid];
+                        if (cn) connLabels.push(cn.label);
+                    });
+
+                    var html = '<div class="browse-item-main">';
+                    if (node.emoji) html += '<span class="browse-item-emoji">' + node.emoji + '</span>';
+                    html += '<span class="browse-item-label">' + node.label + '</span></div>';
+                    if (node.description) {
+                        html += '<div class="browse-item-desc">' + node.description + '</div>';
+                    }
+                    if (connLabels.length > 0) {
+                        html += '<div class="browse-item-conns">';
+                        var seen = {};
+                        connLabels.slice(0, 8).forEach(function (l) {
+                            if (!seen[l]) { seen[l] = true; html += '<span class="browse-conn-pill">' + l + '</span>'; }
+                        });
+                        if (connLabels.length > 8) {
+                            html += '<span class="browse-conn-pill" style="background:transparent;color:var(--color-silver);">+' + (connLabels.length - 8) + ' more</span>';
+                        }
+                        html += '</div>';
+                    }
+                    item.innerHTML = html;
+                    body.appendChild(item);
+                });
+
+                card.appendChild(body);
+                gkGrid.appendChild(card);
+            });
         }
 
-        // ── Vocab Graph ──
-        var vViz = null, vInit = false, vObs = false, vTheme = null;
-        function initVocab() {
-          if (vInit) return;
-          var canvas = document.getElementById('vocabGraphCanvas');
-          if (!canvas) return;
-          var data = vocabGraphData;
-          var leg = document.getElementById('vocabGraphLegend');
-          if (leg) {
-            var names = Object.keys(data.categories).sort(), h = '';
-            for (var i = 0; i < names.length; i++) {
-              var c = data.categories[names[i]];
-              h += '<span class="graph-legend-item"><span class="graph-legend-dot" style="background:' + c.color + '"></span>' + names[i].charAt(0).toUpperCase() + names[i].slice(1) + ' (' + c.count + ')</span>';
-            }
-            leg.innerHTML = h;
-          }
-          try {
-            vViz = new Graph3D(canvas, { nodes: data.nodes, edges: data.edges });
-            vViz.nodeRadius = 6; vViz.edgeColor = edgeColor(); vViz.edgeWidth = 0.8; vViz.labelFont = 'bold 10px "Nunito Sans", system-ui, sans-serif';
-            var wrap = document.getElementById('vocabGraphWrap');
-            function res() { var r = wrap.getBoundingClientRect(); canvas.style.width = r.width + 'px'; canvas.style.height = r.height + 'px'; if (vViz) vViz._resize(); }
-            res(); window.addEventListener('resize', res);
-            if (vTheme) vTheme.disconnect();
-            vTheme = new MutationObserver(function () { if (vViz) vViz.edgeColor = edgeColor(); });
-            vTheme.observe(document.body, { attributes: true, attributeFilter: ['data-theme'] });
-            vViz.setInteraction(true); vViz.start(); vInit = true;
-          } catch (e) { console.warn('Vocab:', e); }
+        // ── Build Vocab browser ──
+        var vData = vocabGraphData;
+        var vGrid = document.getElementById('vocabGrid');
+        if (vGrid) {
+            var vNodeMap = {};
+            vData.nodes.forEach(function (n) { vNodeMap[n.id] = n; });
+
+            var vAdj = {};
+            vData.edges.forEach(function (e) {
+                if (!vAdj[e.source]) vAdj[e.source] = [];
+                if (!vAdj[e.target]) vAdj[e.target] = [];
+                if (vAdj[e.source].indexOf(e.target) === -1) vAdj[e.source].push(e.target);
+                if (vAdj[e.target].indexOf(e.source) === -1) vAdj[e.target].push(e.source);
+            });
+
+            var vCats = {};
+            vData.nodes.forEach(function (n) {
+                if (!vCats[n.category]) vCats[n.category] = [];
+                vCats[n.category].push(n);
+            });
+
+            var vCatNames = Object.keys(vCats).sort();
+            vCatNames.forEach(function (cat) {
+                var items = vCats[cat];
+                var color = items[0].color || '#a570ff';
+                var card = document.createElement('div');
+                card.className = 'browse-card';
+
+                var header = document.createElement('div');
+                header.className = 'browse-card-header';
+                header.innerHTML =
+                    '<span class="browse-card-dot" style="background:' + color + '"></span>' +
+                    '<span class="browse-card-title">' + cat.charAt(0).toUpperCase() + cat.slice(1) + '</span>' +
+                    '<span class="browse-card-count">' + items.length + '</span>' +
+                    '<span class="browse-card-toggle">▶</span>';
+                header.addEventListener('click', function () {
+                    card.classList.toggle('open');
+                });
+                card.appendChild(header);
+
+                var body = document.createElement('div');
+                body.className = 'browse-card-body';
+
+                items.forEach(function (node) {
+                    var item = document.createElement('div');
+                    item.className = 'browse-item';
+
+                    var conns = vAdj[node.id] || [];
+                    var connLabels = [];
+                    conns.forEach(function (cid) {
+                        var cn = vNodeMap[cid];
+                        if (cn) connLabels.push(cn.label);
+                    });
+
+                    var html = '<div class="browse-item-main">';
+                    if (node.emoji) html += '<span class="browse-item-emoji">' + node.emoji + '</span>';
+                    html += '<span class="browse-item-label">' + node.label + '</span></div>';
+                    if (node.description) {
+                        html += '<div class="browse-item-meaning">' + node.description + '</div>';
+                    }
+                    if (connLabels.length > 0) {
+                        html += '<div class="browse-item-conns">';
+                        var seen = {};
+                        connLabels.slice(0, 6).forEach(function (l) {
+                            if (!seen[l]) { seen[l] = true; html += '<span class="browse-conn-pill">' + l + '</span>'; }
+                        });
+                        if (connLabels.length > 6) {
+                            html += '<span class="browse-conn-pill" style="background:transparent;color:var(--color-silver);">+' + (connLabels.length - 6) + ' more</span>';
+                        }
+                        html += '</div>';
+                    }
+                    item.innerHTML = html;
+                    body.appendChild(item);
+                });
+
+                card.appendChild(body);
+                vGrid.appendChild(card);
+            });
         }
-
-        // ── Lazy init on scroll ──
-        var obs = new IntersectionObserver(function (entries) {
-          entries.forEach(function (e) {
-            if (!e.isIntersecting) return;
-            var id = e.target.id;
-            if (id === 'gkGraphWrap' && !gkObs) { gkObs = true; initGK(); obs.unobserve(e.target); }
-            else if (id === 'vocabGraphWrap' && !vObs) { vObs = true; initVocab(); obs.unobserve(e.target); }
-          });
-        }, { threshold: 0.05, rootMargin: '0px 0px 100px 0px' });
-
-        var gw = document.getElementById('gkGraphWrap');
-        var vw = document.getElementById('vocabGraphWrap');
-        if (gw) obs.observe(gw);
-        if (vw) obs.observe(vw);
       })();
     </script>
 </body>
