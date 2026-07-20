@@ -60,14 +60,6 @@
     /* Scoped landing-only tokens — DO NOT promote to /design */
     --motion-press-translate: 5px;
     --motion-rise-distance: 24px;
-    --hero-card-shadow: 0 10px 0 rgba(63, 143, 1, 0.08), 0 24px 60px -16px rgba(0, 0, 0, 0.18);
-    --vocab-card-shadow: 0 10px 0 rgba(28, 176, 246, 0.10), 0 24px 60px -16px rgba(0, 0, 0, 0.18);
-
-    /* Animation system tokens */
-    --tilt-max-deg: 6deg;
-    --transition-tilt: 300ms cubic-bezier(0.16, 1, 0.3, 1);
-    --transition-card: 250ms cubic-bezier(0.16, 1, 0.3, 1);
-    --parallax-multiplier: 1;
 }
 
 /* --- 2. Reset / base --- */
@@ -122,6 +114,46 @@ a { color: var(--color-sky-blue); text-decoration: none; }
     backdrop-filter: saturate(180%) blur(12px);
     -webkit-backdrop-filter: saturate(180%) blur(12px);
     border-bottom: 1px solid rgba(229, 229, 229, 0.6);
+    gap: 16px;
+}
+
+/* Topbar navigation links */
+.topbar-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.topbar-nav-link {
+    font-family: var(--font-din-round);
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-graphite);
+    padding: 8px 14px;
+    border-radius: var(--radius-buttons, 12px);
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    white-space: nowrap;
+}
+.topbar-nav-link:hover {
+    background: var(--color-duo-green-light);
+    color: var(--shadow-primary-green);
+}
+.topbar-nav-link--gk {
+    color: var(--color-duo-green);
+}
+.topbar-nav-link--gk:hover {
+    background: var(--color-duo-green);
+    color: var(--color-snow-white);
+}
+.topbar-nav-link--vocab {
+    color: var(--color-sky-blue);
+}
+.topbar-nav-link--vocab:hover {
+    background: var(--color-sky-blue);
+    color: var(--color-snow-white);
 }
 
 .brand {
@@ -430,231 +462,7 @@ a { color: var(--color-sky-blue); text-decoration: none; }
     50% { opacity: 0.5; transform: scale(0.8); }
 }
 
-/* --- 6. Tracks section (the 2 cards) --- */
-.tracks-section {
-    width: 100%;
-    max-width: var(--page-max-width, 1140px);
-    margin: 0 auto;
-    padding: 32px 32px 96px;
-}
-
-.tracks-header {
-    text-align: center;
-    margin-bottom: 48px;
-}
-
-.tracks-header h2 {
-    font-family: var(--font-feather);
-    font-weight: 700;
-    font-size: clamp(32px, 4vw, 44px);
-    letter-spacing: -0.02em;
-    color: var(--color-almost-black);
-    margin: 0 0 12px;
-}
-
-.tracks-header p {
-    color: var(--color-graphite);
-    font-size: 16px;
-    margin: 0;
-}
-
-.tracks-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 32px;
-}
-
-.card-track {
-    position: relative;
-    background: var(--color-snow-white);
-    border-radius: var(--radius-cards);
-    padding: 32px 28px 28px;
-    box-shadow: var(--hero-card-shadow);
-    border: 2px solid var(--color-cloud-gray);
-    display: flex;
-    flex-direction: column;
-    text-align: left;
-    transition: transform var(--transition-card), box-shadow var(--transition-card), border-color var(--transition-card);
-    cursor: pointer;
-    text-decoration: none;
-    color: inherit;
-    overflow: hidden;
-    isolation: isolate;
-    transform-style: preserve-3d;
-    will-change: transform;
-}
-
-.card-track:hover {
-    transform: translateY(-8px) perspective(800px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
-    box-shadow:
-        0 18px 0 rgba(63, 143, 1, 0.12),
-        0 40px 80px -16px rgba(0, 0, 0, 0.25);
-}
-
-/* 3D tilt smooth reset */
-.card-track {
-    --tilt-x: 0deg;
-    --tilt-y: 0deg;
-}
-
-.card-track:focus-visible {
-    outline: 3px solid var(--color-sky-blue);
-    outline-offset: 4px;
-}
-
-/* The colored "stripe" at the top of each card uses a token-driven
-   gradient — GK gets duo-green, Vocab gets sky-blue. */
-.card-track::before {
-    content: "";
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 8px;
-    background: var(--color-duo-green);
-    z-index: 0;
-}
-
-.card-track--vocab {
-    box-shadow: var(--vocab-card-shadow);
-}
-.card-track--vocab::before {
-    background: var(--color-sky-blue);
-}
-.card-track--vocab:hover {
-    box-shadow:
-        0 14px 0 rgba(28, 176, 246, 0.12),
-        0 32px 70px -16px rgba(0, 0, 0, 0.22);
-}
-
-/* NEW badge on vocab card */
-.card-track-badge {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    background: var(--color-bubblegum-pink);
-    color: var(--color-snow-white);
-    font-family: var(--font-din-round);
-    font-weight: 700;
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 5px 12px;
-    border-radius: 999px;
-    box-shadow: 0 3px 8px rgba(204, 52, 141, 0.35);
-    z-index: 2;
-    animation: popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.8s both;
-}
-
-.card-track-icon {
-    width: 64px;
-    height: 64px;
-    border-radius: 16px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--color-duo-green-light);
-    color: var(--color-shadow-primary-green, var(--shadow-primary-green));
-    margin-bottom: 20px;
-    box-shadow: 0 4px 0 rgba(63, 143, 1, 0.12);
-}
-
-.card-track--vocab .card-track-icon {
-    background: rgba(28, 176, 246, 0.10);
-    box-shadow: 0 4px 0 rgba(28, 176, 246, 0.14);
-}
-
-.card-track-icon svg {
-    width: 32px;
-    height: 32px;
-    fill: var(--color-shadow-primary-green, var(--shadow-primary-green));
-}
-
-.card-track--vocab .card-track-icon svg {
-    fill: var(--color-sky-blue);
-}
-
-.card-track h3 {
-    font-family: var(--font-feather);
-    font-weight: 700;
-    font-size: 32px;
-    letter-spacing: -0.02em;
-    color: var(--color-almost-black);
-    margin: 0 0 12px;
-}
-
-.card-track p {
-    font-size: 15px;
-    line-height: 1.55;
-    color: var(--color-graphite);
-    margin: 0 0 24px;
-    flex-grow: 1;
-}
-
-.card-track-meta {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 22px;
-    font-size: 13px;
-    color: var(--color-silver);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-}
-
-.card-track-meta .dot {
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: var(--color-silver);
-    display: inline-block;
-}
-
-.card-track-cta {
-    display: inline-flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 24px;
-    background: var(--color-duo-green);
-    color: var(--color-snow-white);
-    font-family: var(--font-din-round);
-    font-weight: 700;
-    font-size: 15px;
-    letter-spacing: 0.053em;
-    text-transform: uppercase;
-    border-radius: var(--radius-buttons);
-    box-shadow: 0 5px 0 var(--shadow-primary-green);
-    transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.2s ease;
-    align-self: stretch;
-}
-
-.card-track--vocab .card-track-cta {
-    background: var(--color-sky-blue);
-    box-shadow: 0 5px 0 var(--shadow-primary-blue);
-}
-
-.card-track:hover .card-track-cta {
-    transform: translateY(-1px);
-}
-
-.card-track:active .card-track-cta,
-.card-track:focus-visible .card-track-cta,
-.card-track.is-pressed .card-track-cta {
-    transform: translateY(5px);
-    box-shadow: 0 0 0 transparent;
-}
-
-.card-track-cta svg {
-    width: 18px;
-    height: 18px;
-    fill: var(--color-snow-white);
-    transition: transform 0.18s ease;
-}
-
-.card-track:hover .card-track-cta svg {
-    transform: translateX(4px);
-}
-
-/* --- 7. Stats row --- */
+/* --- 6. Stats row --- */
 .stats-row {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -705,7 +513,7 @@ a { color: var(--color-sky-blue); text-decoration: none; }
     margin-top: 8px;
 }
 
-/* --- 8. Footer --- */
+/* --- 7. Footer --- */
 .landing-footer {
     width: 100%;
     border-top: 1px solid rgba(229, 229, 229, 0.6);
@@ -724,113 +532,22 @@ a { color: var(--color-sky-blue); text-decoration: none; }
     font-weight: 700;
 }
 
-/* --- 9. Vocab coming-soon section --- */
-.vocab-soon {
-    min-height: calc(100dvh - 80px);
-    display: grid;
-    place-items: center;
-    padding: 80px 24px 64px;
-    text-align: center;
-}
-.vocab-soon-inner {
-    max-width: 560px;
-    animation: cardIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-.vocab-soon-inner h1 {
-    font-family: var(--font-feather);
-    font-weight: 700;
-    font-size: clamp(36px, 5vw, 56px);
-    color: var(--color-almost-black);
-    letter-spacing: -0.025em;
-    line-height: 1.1;
-    margin: 24px 0 16px;
-}
-.vocab-soon-inner h1 .accent {
-    color: var(--color-sky-blue);
-}
-.vocab-soon-inner p {
-    color: var(--color-graphite);
-    font-size: 17px;
-    line-height: 1.55;
-    margin: 0 0 32px;
-}
-.vocab-soon-inner .coming-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
-    border-radius: 999px;
-    background: rgba(28, 176, 246, 0.10);
-    color: var(--color-sky-blue);
-    font-family: var(--font-din-round);
-    font-weight: 700;
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 16px;
-    box-shadow: 0 4px 0 rgba(28, 176, 246, 0.12);
-}
-.vocab-soon-inner .coming-pill .pulse {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--color-sky-blue);
-    animation: pulseDot 1.6s ease-in-out infinite;
-    box-shadow: 0 0 0 0 rgba(28, 176, 246, 0.55);
-}
-.vocab-soon-actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 16px;
-    margin-top: 8px;
-}
-.vocab-soon-blob {
-    width: 140px;
-    height: 140px;
-    margin: 0 auto;
-    background: rgba(28, 176, 246, 0.10);
-    border-radius: 50% 40% 55% 45%;
-    display: grid;
-    place-items: center;
-    box-shadow: 0 8px 0 rgba(28, 176, 246, 0.10);
-    animation: floatY 4s ease-in-out infinite;
-}
-.vocab-soon-blob svg {
-    width: 60px; height: 60px; fill: var(--color-sky-blue);
-}
-@keyframes floatY {
-    0%, 100% { transform: translateY(0); }
-    50%      { transform: translateY(-8px); }
-}
-
-/* ---- New Animation Keyframes ---- */
+/* ---- Animation Keyframes ---- */
 @keyframes revealUp {
     from { opacity: 0; transform: translateY(40px) scale(0.97); }
     to   { opacity: 1; transform: translateY(0) scale(1); }
 }
-
-@keyframes revealLeft {
-    from { opacity: 0; transform: translateX(-60px); }
-    to   { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes revealRight {
-    from { opacity: 0; transform: translateX(60px); }
-    to   { opacity: 1; transform: translateX(0); }
-}
-
 @keyframes popIn {
     0%   { opacity: 0; transform: scale(0.5); }
     70%  { opacity: 1; transform: scale(1.08); }
     100% { opacity: 1; transform: scale(1); }
 }
-
 @keyframes blobFloat {
     0%, 100% { transform: translate(0, 0) rotate(0deg); }
     25%  { transform: translate(8px, -12px) rotate(2deg); }
     50%  { transform: translate(-4px, -18px) rotate(-1deg); }
     75%  { transform: translate(12px, -6px) rotate(1deg); }
 }
-
 @keyframes statPop {
     0%   { opacity: 0; transform: translateY(30px) rotate(var(--base-rotate, 0deg)) scale(0.9); }
     60%  { opacity: 1; transform: translateY(-4px) rotate(var(--base-rotate, 0deg)) scale(1.03); }
@@ -903,20 +620,17 @@ a { color: var(--color-sky-blue); text-decoration: none; }
     .hero-subhead { margin-left: auto; margin-right: auto; }
     .hero-cta-row { justify-content: center; }
     .hero-trust { justify-content: center; }
-    .tracks-grid { grid-template-columns: 1fr; }
     .stats-row { grid-template-columns: 1fr; }
-    .topbar { padding: 14px 20px; }
-    .tracks-section { padding: 8px 20px 64px; }
+    .topbar { padding: 14px 20px; flex-wrap: wrap; }
+    .topbar-nav { order: 3; width: 100%; justify-content: center; margin-top: 8px; }
     .hero-blob-layer { display: none; }
-    .card-track:hover { transform: translateY(-4px); }
 }
 
 @media (max-width: 480px) {
     .hero-title { font-size: 40px; }
     .hero-cta-row { flex-direction: column; align-items: stretch; }
     .btn-cta-primary, .btn-cta-secondary { width: 100%; justify-content: center; }
-    .card-track { padding: 28px 22px 22px; }
-    .card-track h3 { font-size: 28px; }
+    .topbar-nav-link { font-size: 11px; padding: 6px 10px; }
 }
 
 /* --- 10. Reduced motion --- */
@@ -939,7 +653,6 @@ a { color: var(--color-sky-blue); text-decoration: none; }
         transform: none !important;
     }
     .stat-tile { opacity: 1 !important; transform: none !important; }
-    .card-track { transform: none !important; }
     .hero-blob-layer { transform: none !important; }
     .hero-line, .hero-eyebrow, .hero-subhead, .hero-cta-row, .hero-trust, .avatar-stack .avatar {
         animation: none !important;
@@ -957,8 +670,6 @@ a { color: var(--color-sky-blue); text-decoration: none; }
     --color-silver: #64748b;
     --color-charcoal: #cbd5e1;
     --color-duo-green-light: rgba(88, 204, 2, 0.10);
-    --hero-card-shadow: 0 10px 0 rgba(88, 204, 2, 0.10), 0 24px 60px -16px rgba(0, 0, 0, 0.5);
-    --vocab-card-shadow: 0 10px 0 rgba(28, 176, 246, 0.10), 0 24px 60px -16px rgba(0, 0, 0, 0.5);
 }
 
 [data-theme="dark"] body {
@@ -969,6 +680,27 @@ a { color: var(--color-sky-blue); text-decoration: none; }
     background: rgba(15, 23, 42, 0.85);
     border-bottom-color: rgba(30, 41, 59, 0.6);
 }
+[data-theme="dark"] .topbar-nav-link {
+    color: var(--color-graphite);
+}
+[data-theme="dark"] .topbar-nav-link:hover {
+    background: rgba(88, 204, 2, 0.15);
+    color: var(--color-duo-green);
+}
+[data-theme="dark"] .topbar-nav-link--gk {
+    color: var(--color-duo-green);
+}
+[data-theme="dark"] .topbar-nav-link--gk:hover {
+    background: var(--color-duo-green);
+    color: #0f172a;
+}
+[data-theme="dark"] .topbar-nav-link--vocab {
+    color: var(--color-sky-blue);
+}
+[data-theme="dark"] .topbar-nav-link--vocab:hover {
+    background: var(--color-sky-blue);
+    color: #0f172a;
+}
 
 [data-theme="dark"] .page-backdrop {
     background-color: var(--color-snow-white);
@@ -977,19 +709,6 @@ a { color: var(--color-sky-blue); text-decoration: none; }
         radial-gradient(circle at 92% 12%, rgba(28, 176, 246, 0.10) 0, transparent 38%),
         radial-gradient(circle at 8% 92%, rgba(255, 199, 0, 0.08) 0, transparent 30%),
         radial-gradient(circle at 88% 88%, rgba(165, 112, 255, 0.10) 0, transparent 30%);
-}
-
-[data-theme="dark"] .card-track {
-    background: #1e293b;
-    border-color: #334155;
-}
-
-[data-theme="dark"] .card-track-icon {
-    background: rgba(88, 204, 2, 0.10);
-}
-
-[data-theme="dark"] .card-track--vocab .card-track-icon {
-    background: rgba(28, 176, 246, 0.10);
 }
 
 [data-theme="dark"] .stat-tile {

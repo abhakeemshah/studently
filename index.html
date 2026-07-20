@@ -3,26 +3,262 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="description" content="Master Study Hub — get smarter every day. Master General Knowledge with 160 MCQs across history, geography & science. Vocabulary trainer with 103 themed words.">
+    <meta name="description" content="Master Study Hub — explore 160 GK topics in a 3D knowledge graph and 103 vocabulary words in a synonym network. Interactive, visual, free.">
     <meta name="theme-color" content="#58cc02">
-    <title>Master Study Hub — get smarter. every day.</title>
+    <title>Master Study Hub — interactive knowledge &amp; vocabulary maps</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@700&family=Nunito+Sans:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@700&family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="./landing.css">
+    <style>
+        /* ═══════════════════════════════════════════════════
+           Interactive Graph Sections (on the landing page)
+           ═══════════════════════════════════════════════════ */
+        .graph-section {
+            width: 100%;
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 48px 32px 72px;
+        }
+
+        .graph-section-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .graph-section-header .graph-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 16px;
+        }
+        .graph-section-header .graph-eyebrow--gk {
+            background: var(--color-duo-green-light);
+            color: var(--shadow-primary-green);
+            box-shadow: 0 3px 0 rgba(63, 143, 1, 0.10);
+        }
+        .graph-section-header .graph-eyebrow--vocab {
+            background: rgba(165, 112, 255, 0.12);
+            color: var(--color-grape-soda);
+            box-shadow: 0 3px 0 rgba(165, 112, 255, 0.15);
+        }
+        .graph-section-header h2 {
+            font-family: var(--font-feather, 'Fredoka', sans-serif);
+            font-weight: 700;
+            font-size: clamp(32px, 4vw, 44px);
+            letter-spacing: -0.02em;
+            color: var(--color-almost-black);
+            margin: 0 0 12px;
+        }
+        .graph-section-header p {
+            font-size: 16px;
+            line-height: 1.5;
+            color: var(--color-graphite);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Graph canvas container */
+        .graph-canvas-wrap {
+            position: relative;
+            width: 100%;
+            height: 460px;
+            border-radius: var(--radius-cards, 16px);
+            overflow: hidden;
+            border: 2px solid var(--color-cloud-gray);
+            box-shadow: 0 12px 0 var(--color-cloud-gray), 0 24px 60px -16px rgba(0,0,0,0.12);
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+            background: var(--color-snow-white);
+        }
+        .graph-canvas-wrap canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            touch-action: none;
+        }
+
+        /* Gradient overlays for each graph */
+        .graph-canvas-wrap.graph--gk {
+            background: radial-gradient(ellipse at 30% 40%, rgba(88,204,2,0.06) 0%, transparent 60%),
+                        var(--color-snow-white);
+        }
+        .graph-canvas-wrap.graph--vocab {
+            background: radial-gradient(ellipse at 70% 50%, rgba(165,112,255,0.06) 0%, transparent 60%),
+                        radial-gradient(ellipse at 30% 60%, rgba(28,176,246,0.04) 0%, transparent 50%),
+                        var(--color-snow-white);
+        }
+
+        /* Graph instructions bar */
+        .graph-controls-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .graph-instruction {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-silver);
+            letter-spacing: 0.04em;
+        }
+        .graph-instruction span {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .graph-instruction .sep {
+            opacity: 0.4;
+            margin: 0 8px;
+        }
+
+        /* Legend */
+        .graph-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 14px;
+            justify-content: center;
+            padding: 4px 0;
+        }
+        .graph-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--color-graphite);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .graph-legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* CTA row below each graph */
+        .graph-cta-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 14px;
+            margin-top: 24px;
+        }
+        .graph-cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            font-family: var(--font-din-round, 'Nunito Sans', sans-serif);
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 0.053em;
+            text-transform: uppercase;
+            border-radius: var(--radius-buttons, 12px);
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.2s ease;
+            border: none;
+        }
+        .graph-cta-btn:active {
+            transform: translateY(4px);
+            box-shadow: none !important;
+        }
+        .graph-cta-btn--primary {
+            background: var(--color-duo-green);
+            color: var(--color-snow-white);
+            box-shadow: 0 5px 0 var(--shadow-primary-green);
+        }
+        .graph-cta-btn--primary:hover {
+            background: var(--color-duo-green-dark);
+        }
+        .graph-cta-btn--secondary {
+            background: var(--color-snow-white);
+            color: var(--color-sky-blue);
+            border: 2px solid var(--color-cloud-gray);
+            box-shadow: 0 4px 0 var(--color-cloud-gray);
+        }
+        .graph-cta-btn--secondary:hover {
+            border-color: var(--color-sky-blue);
+            background: rgba(28, 176, 246, 0.04);
+        }
+        .graph-cta-btn--vocab-primary {
+            background: var(--color-grape-soda);
+            color: var(--color-snow-white);
+            box-shadow: 0 5px 0 #7b3fe0;
+        }
+        .graph-cta-btn--vocab-primary:hover {
+            background: #9035e0;
+        }
+
+        /* Divider between sections */
+        .graph-divider {
+            width: 100%;
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 0 32px;
+        }
+        .graph-divider-inner {
+            height: 1px;
+            background: var(--color-cloud-gray);
+            opacity: 0.6;
+        }
+
+        /* Dark mode overrides for graphs */
+        [data-theme="dark"] .graph-canvas-wrap {
+            border-color: #334155;
+            box-shadow: 0 12px 0 #1e293b, 0 24px 60px -16px rgba(0,0,0,0.4);
+            background: #0f172a;
+        }
+        [data-theme="dark"] .graph-canvas-wrap.graph--gk {
+            background: radial-gradient(ellipse at 30% 40%, rgba(88,204,2,0.08) 0%, transparent 60%),
+                        #0f172a;
+        }
+        [data-theme="dark"] .graph-canvas-wrap.graph--vocab {
+            background: radial-gradient(ellipse at 70% 50%, rgba(165,112,255,0.08) 0%, transparent 60%),
+                        radial-gradient(ellipse at 30% 60%, rgba(28,176,246,0.06) 0%, transparent 50%),
+                        #0f172a;
+        }
+        [data-theme="dark"] .graph-cta-btn--secondary {
+            background: #1e293b;
+            border-color: #334155;
+            color: var(--color-sky-blue);
+        }
+        [data-theme="dark"] .graph-divider-inner {
+            background: #334155;
+        }
+
+        @media (max-width: 768px) {
+            .graph-section { padding: 32px 20px 48px; }
+            .graph-canvas-wrap { height: 320px; }
+            .graph-controls-bar { flex-direction: column; align-items: center; }
+            .graph-cta-row { flex-direction: column; align-items: stretch; }
+            .graph-cta-btn { justify-content: center; }
+            .graph-divider { padding: 0 20px; }
+        }
+        @media (max-width: 480px) {
+            .graph-canvas-wrap { height: 260px; }
+            .graph-section-header h2 { font-size: 28px; }
+        }
+    </style>
     <noscript>
         <style>
-            .reveal, .reveal-left, .reveal-right, .reveal-scale, .stat-tile {
-                opacity: 1 !important;
-                transform: none !important;
-            }
+            .reveal, .reveal-left, .reveal-right, .reveal-scale, .stat-tile,
             .hero-line, .hero-eyebrow, .hero-subhead, .hero-cta-row, .hero-trust, .avatar-stack .avatar {
                 opacity: 1 !important;
                 transform: none !important;
                 animation: none !important;
             }
+            .graph-canvas-wrap { height: auto; min-height: 200px; }
         </style>
     </noscript>
 </head>
@@ -37,42 +273,48 @@
             <span class="brand-dot" aria-hidden="true"></span>
             <span>master study hub</span>
         </a>
+        <nav class="topbar-nav" aria-label="Quick navigation">
+            <a href="#gk-graph" class="topbar-nav-link">Knowledge Map</a>
+            <a href="#vocab-graph" class="topbar-nav-link">Word Map</a>
+            <a href="./gk.html" class="topbar-nav-link topbar-nav-link--gk">GK Cards</a>
+            <a href="./vocab.html" class="topbar-nav-link topbar-nav-link--vocab">Vocab Cards</a>
+        </nav>
         <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch to dark mode" title="Switch theme">🌙</button>
     </header>
 
-    <!-- Hero: copy-left, mascot-right on desktop; stacked on mobile. -->
+    <main id="main-content">
+    <!-- Hero: inspiring intro. -->
     <section class="hero" aria-labelledby="hero-title">
-        <!-- Parallax blob layers -->
         <div class="hero-blob-layer hero-blob-layer--back" aria-hidden="true"></div>
         <div class="hero-blob-layer hero-blob-layer--mid" aria-hidden="true"></div>
         <div class="hero-copy">
-            <span class="hero-eyebrow" aria-label="Now with 160 GK cards and 103 Vocabulary words">
+            <span class="hero-eyebrow" aria-label="Interactive knowledge and vocabulary maps">
                 <span class="pulse" aria-hidden="true"></span>
-                <span>160 GK cards + 103 vocab words</span>
+                <span>3D interactive maps</span>
             </span>
 
             <h1 id="hero-title" class="hero-title">
-                <span class="hero-line" data-delay="0">get smarter.</span><br>
-                <span class="hero-line accent" data-delay="200">every single day.</span>
+                <span class="hero-line" data-delay="0">explore knowledge.</span><br>
+                <span class="hero-line accent" data-delay="200">visually.</span>
             </h1>
 
             <p class="hero-subhead">
-                Master world history, geography &amp; science with bite-sized flip-cards.
-                Pick a track below and start a streak today — no signup, no fluff.
+                Drag, zoom, and click through <strong>160 GK topics</strong> connected by geography, history &amp; culture.
+                Or explore <strong>103 vocabulary words</strong> linked by meaning. No signup, no tracking.
             </p>
 
             <div class="hero-cta-row">
-                <a class="btn-cta-primary" href="#tracks" data-track="gk-primary">
-                    <span>Start learning</span>
+                <a class="btn-cta-primary" href="#gk-graph">
+                    <span>Explore Knowledge Map</span>
                     <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
                         <path fill="currentColor" d="M5 12h11.17l-4.88-4.88c-.39-.39-.39-1.03 0-1.42a.9959.9959 0 0 1 1.41 0l6.59 6.59a.9959.9959 0 0 1 0 1.41l-6.59 6.59a.9959.9959 0 0 1-1.41-0.0001c-.39-.39-.39-1.02 0-1.41L16.17 14H5c-.55 0-1-.45-1-1s.45-1 1-1z"/>
                     </svg>
                 </a>
-                <a class="btn-cta-secondary" href="./gk.html">
+                <a class="btn-cta-secondary" href="#vocab-graph">
                     <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-                        <path fill="currentColor" d="M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H4V5h16v14zM6 7h4v2H6zm0 4h8v2H6zm0 4h8v2H6zm10 0h2V7h-2z"/>
+                        <path fill="currentColor" d="M21 4c-1.1 0-2 .9-2 2v13H5c-.55 0-1 .45-1 1s.45 1 1 1h15c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-9 4c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zM5 6c1.1 0 2 .9 2 2s-.9 2-2 2H4V7c0-.55.45-1 1-1zm0 6h2c1.1 0 2 .9 2 2s-.9 2-2 2H4v-3c0-.55.45-1 1-1z"/>
                     </svg>
-                    <span>Open GK deck</span>
+                    <span>Explore Word Map</span>
                 </a>
             </div>
 
@@ -83,80 +325,33 @@
                     <span class="avatar av-3">S</span>
                     <span class="avatar av-4">M</span>
                 </span>
-                <span>Built for focused study</span>
+                <span>Drag, zoom, click — learn visually</span>
             </div>
         </div>
 
-        <!-- Inline SVG mascot — no network fetch, no extension drift.
-             Duolingo-ish blob character with a brain-lightning motif to
-             signal "knowledge". Color uses --color-duo-green (shield),
-             --color-sunshine-yellow (spark), --color-grape-soda (book),
-             and --color-bubblegum-pink (cheeks). -->
         <div class="hero-art" aria-hidden="true">
             <svg viewBox="0 0 520 520" xmlns="http://www.w3.org/2000/svg">
-                <!-- Decorative background bubbles (animated via CSS) -->
                 <circle class="float-a" cx="60" cy="80" r="38" fill="#ffe066" opacity="0.7"/>
                 <circle class="float-b" cx="470" cy="430" r="48" fill="#a570ff" opacity="0.55"/>
                 <circle class="float-c" cx="460" cy="60" r="22" fill="#cc348d" opacity="0.5"/>
-
-                <!-- Soft platform shadow -->
                 <ellipse cx="260" cy="470" rx="170" ry="14" fill="#3c3c3c" opacity="0.10"/>
-
-                <!-- Main mascot body (shield / brain shape) -->
                 <g class="float-c" transform-origin="260 290">
-                    <!-- Mushroom / brain blob body -->
-                    <path d="M120 280
-                             C120 200, 175 140, 260 140
-                             C345 140, 400 200, 400 280
-                             C400 360, 360 410, 320 425
-                             C290 432, 230 432, 200 425
-                             C160 410, 120 360, 120 280 Z"
-                          fill="#58cc02"/>
-                    <!-- Subtle highlight -->
-                    <path d="M180 195
-                             C200 175, 230 165, 250 168
-                             C245 195, 220 215, 190 215
-                             C178 215, 172 205, 180 195 Z"
-                          fill="#7fee2c" opacity="0.55"/>
-
-                    <!-- Eyes (white) -->
+                    <path d="M120 280 C120 200, 175 140, 260 140 C345 140, 400 200, 400 280 C400 360, 360 410, 320 425 C290 432, 230 432, 200 425 C160 410, 120 360, 120 280 Z" fill="#58cc02"/>
+                    <path d="M180 195 C200 175, 230 165, 250 168 C245 195, 220 215, 190 215 C178 215, 172 205, 180 195 Z" fill="#7fee2c" opacity="0.55"/>
                     <ellipse cx="220" cy="280" rx="28" ry="34" fill="#ffffff"/>
                     <ellipse cx="300" cy="280" rx="28" ry="34" fill="#ffffff"/>
-                    <!-- Pupils -->
                     <circle cx="226" cy="288" r="9" fill="#3c3c3c"/>
                     <circle cx="306" cy="288" r="9" fill="#3c3c3c"/>
-                    <!-- Eye sparkle -->
                     <circle cx="223" cy="284" r="3" fill="#ffffff"/>
                     <circle cx="303" cy="284" r="3" fill="#ffffff"/>
-
-                    <!-- Cheek blush -->
                     <ellipse cx="180" cy="330" rx="18" ry="10" fill="#cc348d" opacity="0.35"/>
                     <ellipse cx="340" cy="330" rx="18" ry="10" fill="#cc348d" opacity="0.35"/>
-
-                    <!-- Smile -->
                     <path d="M222 360 Q260 395 300 360" fill="none" stroke="#3c3c3c" stroke-width="6" stroke-linecap="round"/>
                 </g>
-
-                <!-- Lightning bolt on the brain (knowledge spark) -->
                 <g class="float-a" transform="translate(370 175)">
                     <path d="M0 0 L-22 38 L-6 38 L-22 78 L20 30 L4 30 Z" fill="#ffc700" stroke="#3c3c3c" stroke-width="3" stroke-linejoin="round"/>
                 </g>
-
-                <!-- Book under mascot (Vocab track teaser) -->
-                <g class="float-b" transform="translate(80 380)">
-                    <rect x="0" y="0" width="120" height="80" rx="8" fill="#a570ff"/>
-                    <rect x="0" y="0" width="120" height="14" rx="8" fill="#cc348d"/>
-                    <line x1="60" y1="14" x2="60" y2="78" stroke="#ffffff" stroke-width="3" opacity="0.7"/>
-                    <line x1="14" y1="36" x2="50" y2="36" stroke="#ffffff" stroke-width="2.5" opacity="0.85"/>
-                    <line x1="14" y1="50" x2="50" y2="50" stroke="#ffffff" stroke-width="2.5" opacity="0.85"/>
-                    <line x1="14" y1="64" x2="40" y2="64" stroke="#ffffff" stroke-width="2.5" opacity="0.85"/>
-                    <line x1="70" y1="36" x2="106" y2="36" stroke="#ffffff" stroke-width="2.5" opacity="0.85"/>
-                    <line x1="70" y1="50" x2="106" y2="50" stroke="#ffffff" stroke-width="2.5" opacity="0.85"/>
-                    <line x1="70" y1="64" x2="96" y2="64" stroke="#ffffff" stroke-width="2.5" opacity="0.85"/>
-                </g>
-
-                <!-- Tiny stars -->
-                <g class="float-a" fill="#ffc700">
+                <g class="float-b" fill="#ffc700">
                     <path d="M70 240 l4 10 l11 0 l-9 7 l4 11 l-10 -7 l-10 7 l4 -11 l-9 -7 l11 0 z"/>
                 </g>
                 <g class="float-b" fill="#cc348d">
@@ -166,79 +361,98 @@
         </div>
     </section>
 
-    <!-- Tracks: two large clickable "lesson cards" — the page's main action surface. -->
-    <section class="tracks-section" id="tracks" aria-labelledby="tracks-title">
-        <div class="tracks-header reveal">
-            <h2 id="tracks-title">pick your path</h2>
-            <p>One tap and you're studying. Both tracks save your progress locally.</p>
+    <!-- ════════════════════════════════════════════
+         SECTION 1: GK Knowledge Map
+         ════════════════════════════════════════════ -->
+    <section class="graph-section" id="gk-graph" aria-labelledby="gk-graph-title">
+        <div class="graph-section-header reveal">
+            <span class="graph-eyebrow graph-eyebrow--gk">🌐 Interactive Knowledge Map</span>
+            <h2 id="gk-graph-title">General Knowledge Graph</h2>
+            <p>
+                <strong>160+ topics</strong> connected by geography, history, organizations, and natural features.
+                Drag to orbit, scroll to zoom, and click any node to learn more.
+            </p>
         </div>
 
-        <div class="tracks-grid">
-            <!-- GK card — opens the existing flashcard system. -->
-            <a class="card-track card-track--gk reveal-left"
-               href="./gk.html"
-               aria-label="Open the General Knowledge deck with 160 MCQs">
-                <span class="card-track-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M13 2 L4 14 L11 14 L10 22 L19 10 L12 10 Z" />
-                    </svg>
-                </span>
-                <h3>General Knowledge</h3>
-                <p>
-                    Flip through 160 curated MCQs covering world history,
-                    geography, science &amp; culture. Each answer ships with
-                    a real reference image straight from Wikipedia.
-                </p>
-                <div class="card-track-meta" aria-hidden="true">
-                    <span>160 cards</span>
-                    <span class="dot"></span>
-                    <span>10–15 min</span>
-                    <span class="dot"></span>
-                    <span>All ages</span>
-                </div>
-                <span class="card-track-cta" aria-hidden="true">
-                    <span>Open GK deck</span>
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.59 16.59 L13.17 12 L8.59 7.41 L10 6 l6 6 -6 6 z"/></svg>
-                </span>
-            </a>            <!-- Vocab card — now live with 97 words. -->
-            <a class="card-track card-track--vocab reveal-right"
-               href="./vocab.html"
-               aria-label="Open the Vocabulary module — 103 words, 9 themes">
-                <span class="card-track-badge">NEW</span>
-                <span class="card-track-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M21 4c-1.1 0-2 .9-2 2v13H5c-.55 0-1 .45-1 1s.45 1 1 1h15c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-9 4c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zM5 6c1.1 0 2 .9 2 2s-.9 2-2 2H4V7c0-.55.45-1 1-1zm0 6h2c1.1 0 2 .9 2 2s-.9 2-2 2H4v-3c0-.55.45-1 1-1z" />
-                    </svg>
-                </span>
-                <h3>Vocabulary</h3>
-                <p>
-                    Build your Urdu ↔ English word power with 97 curated words
-                    across 9 themes. Click any card to flip and reveal the meaning
-                    — no signup needed.
-                </p>
-                <div class="card-track-meta" aria-hidden="true">
-                    <span>97 words</span>
-                    <span class="dot"></span>
-                    <span>9 themes</span>
-                    <span class="dot"></span>
-                    <span>Flip cards</span>
-                </div>
-                <span class="card-track-cta" aria-hidden="true">
-                    <span>Open Vocab</span>
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.59 16.59 L13.17 12 L8.59 7.41 L10 6 l6 6 -6 6 z"/></svg>
-                </span>
+        <div class="graph-canvas-wrap graph--gk reveal-scale" id="gkGraphWrap">
+            <canvas id="gkGraphCanvas"></canvas>
+        </div>
+
+        <div class="graph-controls-bar">
+            <div class="graph-instruction">
+                <span>🖱️ Drag to rotate</span>
+                <span class="sep">·</span>
+                <span>🔍 Scroll to zoom</span>
+                <span class="sep">·</span>
+                <span>👆 Click to inspect</span>
+            </div>
+        </div>
+
+        <div class="graph-legend" id="gkGraphLegend"></div>
+
+        <div class="graph-cta-row">
+            <a class="graph-cta-btn graph-cta-btn--primary" href="./gk.html">
+                <span>📇</span> Study with flashcards
+            </a>
+            <a class="graph-cta-btn graph-cta-btn--secondary" href="#vocab-graph">
+                <span>↓</span> Explore Word Map
             </a>
         </div>
+    </section>
 
-        <!-- Stats row — proves the "you'll learn a lot" promise. -->
-        <div class="stats-row" aria-label="At a glance">
+    <div class="graph-divider"><div class="graph-divider-inner"></div></div>
+
+    <!-- ════════════════════════════════════════════
+         SECTION 2: Vocab Word Map
+         ════════════════════════════════════════════ -->
+    <section class="graph-section" id="vocab-graph" aria-labelledby="vocab-graph-title">
+        <div class="graph-section-header reveal">
+            <span class="graph-eyebrow graph-eyebrow--vocab">🔗 Interactive Word Map</span>
+            <h2 id="vocab-graph-title">Vocabulary Synonym Network</h2>
+            <p>
+                <strong>103 words</strong> across 9 themes — connected by meaning, synonym clusters, and cross-theme
+                relationships. Discover how words relate to each other visually.
+            </p>
+        </div>
+
+        <div class="graph-canvas-wrap graph--vocab reveal-scale" id="vocabGraphWrap">
+            <canvas id="vocabGraphCanvas"></canvas>
+        </div>
+
+        <div class="graph-controls-bar">
+            <div class="graph-instruction">
+                <span>🖱️ Drag to rotate</span>
+                <span class="sep">·</span>
+                <span>🔍 Scroll to zoom</span>
+                <span class="sep">·</span>
+                <span>👆 Click to learn meaning</span>
+            </div>
+        </div>
+
+        <div class="graph-legend" id="vocabGraphLegend"></div>
+
+        <div class="graph-cta-row">
+            <a class="graph-cta-btn graph-cta-btn--vocab-primary" href="./vocab.html">
+                <span>📇</span> Study with flashcards
+            </a>
+            <a class="graph-cta-btn graph-cta-btn--secondary" href="#gk-graph">
+                <span>↑</span> Back to Knowledge Map
+            </a>
+        </div>
+    </section>
+
+    <div class="graph-divider"><div class="graph-divider-inner"></div></div>
+
+    <!-- Stats row -->
+    <section class="graph-section" style="padding-bottom:64px;" aria-label="At a glance stats">
+        <div class="stats-row">
             <div class="stat-tile">
                 <div class="stat-value">160+</div>
-                <div class="stat-label">GK questions</div>
+                <div class="stat-label">GK topics mapped</div>
             </div>
             <div class="stat-tile stat-tile--blue">
-                <div class="stat-value">10 min</div>
-                <div class="stat-label">per day</div>
+                <div class="stat-value">103</div>
+                <div class="stat-label">vocabulary words</div>
             </div>
             <div class="stat-tile stat-tile--yellow">
                 <div class="stat-value">100%</div>
@@ -247,14 +461,172 @@
         </div>
     </section>
 
+    </main>
+
     <footer class="landing-footer" role="contentinfo">
         Made with <span aria-hidden="true">❤️</span> — no signup, no tracking, all progress stays on your device.
         &nbsp;·&nbsp;
-        <a href="./gk.html">Open GK</a>
+        <a href="./gk.html">GK Cards</a>
         &nbsp;·&nbsp;
-        <a href="./vocab.html">Vocab</a>
+        <a href="./vocab.html">Vocab Cards</a>
     </footer>
 
     <script src="./landing.js"></script>
+    <script src="./graph-3d.js"></script>
+    <script src="./gk-graph-data.js"></script>
+    <script src="./vocab-graph-data.js"></script>
+    <script>
+      (function () {
+        'use strict';
+
+        // ── Helpers ──
+        function isDark() {
+          return document.body.getAttribute('data-theme') === 'dark';
+        }
+        function edgeColorDark() {
+          return isDark() ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+        }
+
+        // ── GK Graph ──
+        var gkViz = null;
+        var gkInit = false;
+        var gkObserved = false;
+        var gkThemeObs = null;
+
+        function initGKGraph() {
+          if (gkInit) return;
+          var canvas = document.getElementById('gkGraphCanvas');
+          if (!canvas) return;
+          var data = gkGraphData;
+
+          // Build legend
+          var legendEl = document.getElementById('gkGraphLegend');
+          if (legendEl) {
+            var cats = data.categories;
+            var names = Object.keys(cats).sort();
+            var html = '';
+            for (var i = 0; i < names.length; i++) {
+              var info = cats[names[i]];
+              html += '<span class="graph-legend-item">' +
+                '<span class="graph-legend-dot" style="background:' + info.color + '"></span>' +
+                names[i] + ' (' + info.count + ')' +
+                '</span>';
+            }
+            legendEl.innerHTML = html;
+          }
+
+          try {
+            gkViz = new Graph3D(canvas, { nodes: data.nodes, edges: data.edges });
+            gkViz.nodeRadius = 6;
+            gkViz.edgeColor = edgeColorDark();
+            gkViz.edgeWidth = 0.8;
+            gkViz.labelFont = 'bold 10px "Nunito Sans", system-ui, sans-serif';
+
+            var wrap = document.getElementById('gkGraphWrap');
+            function resizeGK() {
+              var r = wrap.getBoundingClientRect();
+              canvas.style.width = r.width + 'px';
+              canvas.style.height = r.height + 'px';
+              if (gkViz) gkViz._resize();
+            }
+            resizeGK();
+            window.addEventListener('resize', resizeGK);
+
+            // Dark mode observer
+            if (gkThemeObs) gkThemeObs.disconnect();
+            gkThemeObs = new MutationObserver(function () {
+              if (gkViz) gkViz.edgeColor = edgeColorDark();
+            });
+            gkThemeObs.observe(document.body, { attributes: true, attributeFilter: ['data-theme'] });
+
+            gkViz.setInteraction(true);
+            gkViz.start();
+            gkInit = true;
+          } catch (e) {
+            console.warn('GK graph init error:', e);
+          }
+        }
+
+        // ── Vocab Graph ──
+        var vocabViz = null;
+        var vocabInit = false;
+        var vocabObserved = false;
+        var vocabThemeObs = null;
+
+        function initVocabGraph() {
+          if (vocabInit) return;
+          var canvas = document.getElementById('vocabGraphCanvas');
+          if (!canvas) return;
+          var data = vocabGraphData;
+
+          var legendEl = document.getElementById('vocabGraphLegend');
+          if (legendEl) {
+            var cats = data.categories;
+            var names = Object.keys(cats).sort();
+            var html = '';
+            for (var i = 0; i < names.length; i++) {
+              var info = cats[names[i]];
+              html += '<span class="graph-legend-item">' +
+                '<span class="graph-legend-dot" style="background:' + info.color + '"></span>' +
+                names[i].charAt(0).toUpperCase() + names[i].slice(1) + ' (' + info.count + ')' +
+                '</span>';
+            }
+            legendEl.innerHTML = html;
+          }
+
+          try {
+            vocabViz = new Graph3D(canvas, { nodes: data.nodes, edges: data.edges });
+            vocabViz.nodeRadius = 6;
+            vocabViz.edgeColor = edgeColorDark();
+            vocabViz.edgeWidth = 0.8;
+            vocabViz.labelFont = 'bold 10px "Nunito Sans", system-ui, sans-serif';
+
+            var wrap = document.getElementById('vocabGraphWrap');
+            function resizeVocab() {
+              var r = wrap.getBoundingClientRect();
+              canvas.style.width = r.width + 'px';
+              canvas.style.height = r.height + 'px';
+              if (vocabViz) vocabViz._resize();
+            }
+            resizeVocab();
+            window.addEventListener('resize', resizeVocab);
+
+            if (vocabThemeObs) vocabThemeObs.disconnect();
+            vocabThemeObs = new MutationObserver(function () {
+              if (vocabViz) vocabViz.edgeColor = edgeColorDark();
+            });
+            vocabThemeObs.observe(document.body, { attributes: true, attributeFilter: ['data-theme'] });
+
+            vocabViz.setInteraction(true);
+            vocabViz.start();
+            vocabInit = true;
+          } catch (e) {
+            console.warn('Vocab graph init error:', e);
+          }
+        }
+
+        // ── IntersectionObserver: init graphs when scrolled into view ──
+        var graphObserver = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              var id = entry.target.id;
+              if (id === 'gkGraphWrap' && !gkObserved) {
+                gkObserved = true;
+                initGKGraph();
+              } else if (id === 'vocabGraphWrap' && !vocabObserved) {
+                vocabObserved = true;
+                initVocabGraph();
+              }
+              graphObserver.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.1, rootMargin: '0px 0px 100px 0px' });
+
+        var gkWrap = document.getElementById('gkGraphWrap');
+        var vocabWrap = document.getElementById('vocabGraphWrap');
+        if (gkWrap) graphObserver.observe(gkWrap);
+        if (vocabWrap) graphObserver.observe(vocabWrap);
+      })();
+    </script>
 </body>
 </html>
