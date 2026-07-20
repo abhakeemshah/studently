@@ -12,6 +12,25 @@
     <link rel="stylesheet" href="./landing.css">
     <style>
         .browse-section { width: 100%; padding: 40px 24px 64px; background: var(--color-section-alt, #f5f6f8); }
+        .browse-search { position: relative; max-width: 480px; margin: 0 auto 28px; }
+        .browse-search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 16px; pointer-events: none; opacity: 0.5; }
+        .browse-search-input { width: 100%; padding: 12px 14px 12px 40px; font-family: var(--font-din-round); font-size: 15px; font-weight: 600; color: var(--color-almost-black); background: var(--color-snow-white); border: 2px solid var(--color-cloud-gray); border-radius: 10px; outline: none; transition: border-color 0.15s ease, box-shadow 0.15s ease; box-sizing: border-box; }
+        .browse-search-input:focus { border-color: var(--color-grape-soda); box-shadow: 0 0 0 3px rgba(165,112,255,0.15); }
+        .browse-search-input::placeholder { color: var(--color-silver); font-weight: 400; }
+        .browse-search-clear { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; border-radius: 50%; border: none; background: var(--color-cloud-gray); color: var(--color-graphite); font-size: 12px; cursor: pointer; display: none; align-items: center; justify-content: center; line-height: 1; padding: 0; }
+        .browse-search-clear:hover { background: var(--color-silver); color: white; }
+        .browse-search-count { text-align: center; font-size: 13px; font-weight: 600; color: var(--color-graphite); margin-bottom: 16px; display: none; }
+        .browse-card.is-hidden { display: none; }
+        .browse-item.is-highlighted { background: rgba(165,112,255,0.08); border-color: var(--color-grape-soda); }
+        .browse-item.is-muted { opacity: 0.3; }
+        .browse-search-empty { text-align: center; padding: 40px 20px; display: none; }
+        .browse-search-empty-icon { font-size: 40px; margin-bottom: 10px; }
+        .browse-search-empty p { font-size: 15px; color: var(--color-graphite); margin: 0; }
+
+        [data-theme="dark"] .browse-search-input { background: #1e293b; border-color: #334155; color: var(--text-main); }
+        [data-theme="dark"] .browse-search-input:focus { border-color: var(--color-grape-soda); }
+        [data-theme="dark"] .browse-search-clear { background: #334155; color: var(--color-silver); }
+        [data-theme="dark"] .browse-item.is-highlighted { background: rgba(165,112,255,0.15); border-color: var(--color-grape-soda); }
         .browse-inner { max-width: 960px; margin: 0 auto; }
         .browse-head { text-align: center; margin-bottom: 32px; }
         .browse-head-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border-radius: 999px; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; background: rgba(165, 112, 255, 0.12); color: var(--color-grape-soda); }
@@ -78,6 +97,16 @@
                     <h2>Vocabulary — by Theme</h2>
                     <p>103 words across 9 themes. Each word shows its meaning and connected synonyms. Click any section to expand.</p>
                 </div>
+                <div class="browse-search">
+                    <span class="browse-search-icon">🔍</span>
+                    <input type="text" class="browse-search-input" id="vocabSearch" placeholder="Search words, meanings, synonyms…" autocomplete="off" spellcheck="false">
+                    <button class="browse-search-clear" id="vocabSearchClear" aria-label="Clear search">✕</button>
+                </div>
+                <div class="browse-search-count" id="vocabSearchCount"></div>
+                <div class="browse-search-empty" id="vocabSearchEmpty">
+                    <div class="browse-search-empty-icon">🔍</div>
+                    <p>No words found. Try a different search term.</p>
+                </div>
                 <div class="browse-grid" id="vocabGrid"></div>
                 <div class="browse-actions">
                     <a class="browse-btn browse-btn--vocab" href="./vocab.html">📇 Study with flashcards</a>
@@ -97,7 +126,7 @@
         'use strict';
         var data = vocabGraphData, grid = document.getElementById('vocabGrid');
         if (!grid) return;
-        var nodeMap = {}, adj = {}, cats = {};
+        var nodeMap = {}, adj = {}, cats = {}, allItems = [];
         data.nodes.forEach(function (n) { nodeMap[n.id] = n; if (!cats[n.category]) cats[n.category] = []; cats[n.category].push(n); });
         data.edges.forEach(function (e) {
           if (!adj[e.source]) adj[e.source] = []; if (!adj[e.target]) adj[e.target] = [];
@@ -125,9 +154,53 @@
               html += '</div>';
             }
             item.innerHTML = html; body.appendChild(item);
+            allItems.push({ el: item, card: card, text: (node.label + ' ' + (node.description || '') + ' ' + labels.join(' ')).toLowerCase() });
           });
           card.appendChild(body); grid.appendChild(card);
         });
+
+        /* ── Search ── */
+        var searchInput = document.getElementById('vocabSearch');
+        var searchClear = document.getElementById('vocabSearchClear');
+        var searchCount = document.getElementById('vocabSearchCount');
+        var searchEmpty = document.getElementById('vocabSearchEmpty');
+        function doSearch() {
+          var q = searchInput.value.trim().toLowerCase();
+          searchClear.style.display = q ? 'flex' : 'none';
+          if (!q) {
+            searchCount.style.display = 'none';
+            searchEmpty.style.display = 'none';
+            allItems.forEach(function (x) {
+              x.card.classList.remove('is-hidden');
+              x.el.classList.remove('is-highlighted', 'is-muted');
+              x.card.classList.remove('open');
+            });
+            return;
+          }
+          var anyMatch = false;
+          var catsDone = {};
+          allItems.forEach(function (x) {
+            var match = x.text.indexOf(q) !== -1;
+            if (match) { anyMatch = true; x.card.classList.remove('is-hidden'); x.card.classList.add('open'); x.el.classList.add('is-highlighted'); x.el.classList.remove('is-muted'); }
+            else { x.el.classList.add('is-muted'); x.el.classList.remove('is-highlighted'); }
+          });
+          allItems.forEach(function (x) {
+            if (catsDone[x.card]) { x.card.classList.remove('is-hidden'); }
+            else if (!x.card.classList.contains('is-hidden')) {
+              // check if any item in this card matches
+              var cardHasMatch = false;
+              allItems.forEach(function (y) { if (y.card === x.card && y.text.indexOf(q) !== -1) cardHasMatch = true; });
+              if (!cardHasMatch) x.card.classList.add('is-hidden');
+              else catsDone[x.card] = true;
+            }
+          });
+          searchCount.style.display = 'block';
+          var matchCount = 0; allItems.forEach(function (x) { if (x.text.indexOf(q) !== -1) matchCount++; });
+          searchCount.textContent = matchCount + ' result' + (matchCount !== 1 ? 's' : '') + ' for "' + searchInput.value.trim() + '"';
+          searchEmpty.style.display = anyMatch ? 'none' : 'block';
+        }
+        searchInput.addEventListener('input', doSearch);
+        searchClear.addEventListener('click', function () { searchInput.value = ''; searchInput.focus(); doSearch(); });
       })();
     </script>
 </body>

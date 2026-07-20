@@ -12,6 +12,25 @@
     <link rel="stylesheet" href="./landing.css">
     <style>
         .browse-section { width: 100%; padding: 40px 24px 64px; background: var(--color-snow-white); }
+        .browse-search { position: relative; max-width: 480px; margin: 0 auto 28px; }
+        .browse-search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 16px; pointer-events: none; opacity: 0.5; }
+        .browse-search-input { width: 100%; padding: 12px 14px 12px 40px; font-family: var(--font-din-round); font-size: 15px; font-weight: 600; color: var(--color-almost-black); background: var(--color-snow-white); border: 2px solid var(--color-cloud-gray); border-radius: 10px; outline: none; transition: border-color 0.15s ease, box-shadow 0.15s ease; box-sizing: border-box; }
+        .browse-search-input:focus { border-color: var(--color-duo-green); box-shadow: 0 0 0 3px rgba(88,204,2,0.15); }
+        .browse-search-input::placeholder { color: var(--color-silver); font-weight: 400; }
+        .browse-search-clear { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; border-radius: 50%; border: none; background: var(--color-cloud-gray); color: var(--color-graphite); font-size: 12px; cursor: pointer; display: none; align-items: center; justify-content: center; line-height: 1; padding: 0; }
+        .browse-search-clear:hover { background: var(--color-silver); color: white; }
+        .browse-search-count { text-align: center; font-size: 13px; font-weight: 600; color: var(--color-graphite); margin-bottom: 16px; display: none; }
+        .browse-card.is-hidden { display: none; }
+        .browse-item.is-highlighted { background: rgba(88,204,2,0.08); border-color: var(--color-duo-green); }
+        .browse-item.is-muted { opacity: 0.3; }
+        .browse-search-empty { text-align: center; padding: 40px 20px; display: none; }
+        .browse-search-empty-icon { font-size: 40px; margin-bottom: 10px; }
+        .browse-search-empty p { font-size: 15px; color: var(--color-graphite); margin: 0; }
+
+        [data-theme="dark"] .browse-search-input { background: #1e293b; border-color: #334155; color: var(--text-main); }
+        [data-theme="dark"] .browse-search-input:focus { border-color: var(--color-duo-green); }
+        [data-theme="dark"] .browse-search-clear { background: #334155; color: var(--color-silver); }
+        [data-theme="dark"] .browse-item.is-highlighted { background: rgba(88,204,2,0.12); border-color: var(--color-duo-green); }
         .browse-inner { max-width: 960px; margin: 0 auto; }
         .browse-head { text-align: center; margin-bottom: 32px; }
         .browse-head-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border-radius: 999px; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; background: var(--color-duo-green-light); color: var(--shadow-primary-green); }
@@ -77,6 +96,16 @@
                     <h2>General Knowledge — by Category</h2>
                     <p>Countries, rivers, mountains, capitals, organizations, events, and more. Each entry lists what it connects to. Click any section to expand.</p>
                 </div>
+                <div class="browse-search">
+                    <span class="browse-search-icon">🔍</span>
+                    <input type="text" class="browse-search-input" id="gkSearch" placeholder="Search countries, rivers, cities, events…" autocomplete="off" spellcheck="false">
+                    <button class="browse-search-clear" id="gkSearchClear" aria-label="Clear search">✕</button>
+                </div>
+                <div class="browse-search-count" id="gkSearchCount"></div>
+                <div class="browse-search-empty" id="gkSearchEmpty">
+                    <div class="browse-search-empty-icon">🔍</div>
+                    <p>No results found. Try a different search term.</p>
+                </div>
                 <div class="browse-grid" id="gkGrid"></div>
                 <div class="browse-actions">
                     <a class="browse-btn browse-btn--gk" href="./gk.html">📇 Study with flashcards</a>
@@ -96,7 +125,7 @@
         'use strict';
         var data = gkGraphData, grid = document.getElementById('gkGrid');
         if (!grid) return;
-        var nodeMap = {}, adj = {}, cats = {};
+        var nodeMap = {}, adj = {}, cats = {}, allItems = [];
         data.nodes.forEach(function (n) { nodeMap[n.id] = n; if (!cats[n.category]) cats[n.category] = []; cats[n.category].push(n); });
         data.edges.forEach(function (e) {
           if (!adj[e.source]) adj[e.source] = []; if (!adj[e.target]) adj[e.target] = [];
@@ -124,9 +153,50 @@
               html += '</div>';
             }
             item.innerHTML = html; body.appendChild(item);
+            allItems.push({ el: item, card: card, text: (node.label + ' ' + (node.description || '') + ' ' + labels.join(' ')).toLowerCase() });
           });
           card.appendChild(body); grid.appendChild(card);
         });
+
+        /* ── Search ── */
+        var searchInput = document.getElementById('gkSearch');
+        var searchClear = document.getElementById('gkSearchClear');
+        var searchCount = document.getElementById('gkSearchCount');
+        var searchEmpty = document.getElementById('gkSearchEmpty');
+        function doSearch() {
+          var q = searchInput.value.trim().toLowerCase();
+          searchClear.style.display = q ? 'flex' : 'none';
+          if (!q) {
+            searchCount.style.display = 'none';
+            searchEmpty.style.display = 'none';
+            allItems.forEach(function (x) {
+              x.card.classList.remove('is-hidden');
+              x.el.classList.remove('is-highlighted', 'is-muted');
+              x.card.classList.remove('open');
+            });
+            return;
+          }
+          var anyMatch = false;
+          var matchCount = 0;
+          // First pass: highlight matching items, mute non-matching
+          allItems.forEach(function (x) {
+            var match = x.text.indexOf(q) !== -1;
+            if (match) { anyMatch = true; matchCount++; x.el.classList.add('is-highlighted'); x.el.classList.remove('is-muted'); }
+            else { x.el.classList.add('is-muted'); x.el.classList.remove('is-highlighted'); }
+          });
+          // Second pass: show cards that have any match, hide those without
+          allItems.forEach(function (x) {
+            var cardHasMatch = false;
+            allItems.forEach(function (y) { if (y.card === x.card && y.text.indexOf(q) !== -1) cardHasMatch = true; });
+            if (cardHasMatch) { x.card.classList.remove('is-hidden'); x.card.classList.add('open'); }
+            else { x.card.classList.add('is-hidden'); x.card.classList.remove('open'); }
+          });
+          searchCount.style.display = 'block';
+          searchCount.textContent = matchCount + ' result' + (matchCount !== 1 ? 's' : '') + ' for "' + searchInput.value.trim() + '"';
+          searchEmpty.style.display = anyMatch ? 'none' : 'block';
+        }
+        searchInput.addEventListener('input', doSearch);
+        searchClear.addEventListener('click', function () { searchInput.value = ''; searchInput.focus(); doSearch(); });
       })();
     </script>
 </body>
