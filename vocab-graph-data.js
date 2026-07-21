@@ -1027,6 +1027,36 @@ const vocabGraphData = (function () {
     return null;
   }
 
+  // ── ASCII normalizer ──
+  // Permanent defense against smart-quote / smart-dash characters ever
+  // finding their way into rendered DOM. Runs once over every node's
+  // user-facing strings at data-load time. Any current data is already
+  // clean ASCII, but this guards against future copy-paste / auto-format
+  // regressions across contributors.
+  function normalizeText(str) {
+    if (typeof str !== 'string') return str;
+    return str
+      .replace(/[\u201C\u201D]/g, '"')
+      .replace(/[\u2018\u2019]/g, "'")
+      .replace(/\u2014/g, '--')
+      .replace(/\u2013/g, '-')
+      .replace(/\u2026/g, '...');
+  }
+  nodes.forEach(function (n) {
+    if (n.label)       n.label       = normalizeText(n.label);
+    if (n.category)    n.category    = normalizeText(n.category);
+    if (n.description) n.description = normalizeText(n.description);
+    if (n.context)     n.context     = normalizeText(n.context);
+    if (n.examples)    n.examples    = n.examples.map(normalizeText);
+    if (n.synonyms)    n.synonyms    = n.synonyms.map(normalizeText);
+    if (n.contrast) {
+      n.contrast.forEach(function (c) {
+        if (c.word) c.word = normalizeText(c.word);
+        if (c.rel)  c.rel  = normalizeText(c.rel);
+      });
+    }
+  });
+
   return {
     nodes: nodes,
     edges: edges,
