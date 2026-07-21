@@ -1,5 +1,5 @@
 // landing.js — Landing page UI script.
-// Hover/click/keyboard enhancements for the entry page. Loaded by
+// Hover/click/keyboard enhancements for the landing page. Loaded by
 // index.html AFTER landing.css. Classic <script src> so file:// works.
 //
 // Concerns:
