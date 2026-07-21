@@ -614,9 +614,8 @@
         let currentSlide = 0;
         let globalIndex = 1;
 
-        // --- Build slides from vocabData ---
-        //        Each theme key should be "<n>. <title> - <subtitle>". Split on " -- "
-        // so themes with subtitles render both the <h2> and the <p>;
+        // --- Build slides from vocabData ---        // Each theme key should be "<n>. <title> - <subtitle>". Split on " -- "
+// so themes with subtitles show both the <h2> and the <p>;
         // themes without render only the title (subtitle => '' => <p> skipped).
         themes.forEach((theme) => {
             const slide = document.createElement('div');
