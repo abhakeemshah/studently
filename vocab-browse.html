@@ -89,6 +89,7 @@
         @media (max-width: 480px) {
           .meaning-cluster-grid { grid-template-columns: 1fr; }
           .meaning-cluster-title { font-size: 18px; }
+          .meaning-theme-section { padding: 16px; margin-bottom: 20px; }
         }
 
         @media (max-width: 700px) {
@@ -461,8 +462,10 @@
         meaningGroups.forEach(function (group) {
           var catCount = {};
           group.words.forEach(function (w) { catCount[w.category] = (catCount[w.category] || 0) + 1; });
-          var mainCat = group.anchor.category; // fallback if all counts tie
-          var mainCount = 0;
+          // Tie-break in favor of the anchor word's own category so the cluster's
+          // semantic home matches its named entry point.
+          var mainCat = group.anchor.category;
+          var mainCount = catCount[mainCat] || 0;
           Object.keys(catCount).forEach(function (ck) {
             if (catCount[ck] > mainCount) { mainCat = ck; mainCount = catCount[ck]; }
           });
@@ -485,6 +488,7 @@
 
           var tSec = document.createElement('section');
           tSec.className = 'meaning-theme-section';
+          tSec.id = 'meaning-theme-' + theme.id; // allow deep-link anchors
           tSec.innerHTML =
             '<h3 class="meaning-theme-title" style="color:' + themeColor + '">' + themeTitle + '</h3>' +
             '<div class="meaning-theme-sub">' + theme.clusters.length + ' cluster' + (theme.clusters.length === 1 ? '' : 's') +
