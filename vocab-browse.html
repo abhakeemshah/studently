@@ -56,6 +56,7 @@
         .browse-meaning-anchor { font-style: italic; font-weight: 700; }
         .browse-meaning-card { border-left: 3px solid var(--color-grape-soda); }
         .browse-meaning-card .browse-card-title { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+        .browse-meaning-item-tag { display: inline-block; margin-left: 6px; padding: 2px 7px; border-radius: 999px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; background: var(--color-grape-soda); color: white; vertical-align: middle; }
         [data-theme="dark"] .browse-meaning-sub { color: var(--color-silver); }
 
         @media (max-width: 700px) {
@@ -178,6 +179,11 @@
         var data = vocabGraphData, grid = document.getElementById('vocabGrid');
         if (!grid) return;
         var nodeMap = {}, adj = {}, cats = {}, allItems = [];
+        var meaningsMode = false;
+        var meaningCards = [];
+        var meaningItemRegisters = [];
+        var meaningOrder = [];
+        var meaningGrid = null;
         data.nodes.forEach(function (n) { nodeMap[n.id] = n; if (!cats[n.category]) cats[n.category] = []; cats[n.category].push(n); });
         data.edges.forEach(function (e) {
           if (!adj[e.source]) adj[e.source] = []; if (!adj[e.target]) adj[e.target] = [];
@@ -399,7 +405,8 @@
             var item = document.createElement('div');
             item.className = 'browse-item browse-meaning-item';
             var emoji = node.emoji || '';
-            var labelExtra = (node.id === group.anchor.id) ? ' (anchor)' : '';
+            var isAnchor = (node.id === group.anchor.id);
+            var labelExtra = isAnchor ? ' <span class="browse-meaning-item-tag">anchor</span>' : '';
             item.innerHTML =
               '<div class="browse-item-main">' +
                 '<span class="browse-item-emoji">' + emoji + '</span>' +
