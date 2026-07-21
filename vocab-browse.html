@@ -413,7 +413,9 @@
           rawGroups[r].push(n);
         });
 
-        // Sort groups: highest-degree word per cluster = anchor; sort by size desc + label.
+        // Build groups: includes both 2-word pairs and 1-word singles (so every word
+        // gets a card on this page). Pairs and triplets stay clustered as
+        // "closest meaning"; standalone words go in their own single-word box.
         var meaningGroups = Object.keys(rawGroups).map(function (k) {
           var g = rawGroups[k];
           var anchor = g[0];
@@ -424,12 +426,14 @@
             var dd = degreeMap[b.id] - degreeMap[a.id];
             return dd !== 0 ? dd : a.label.localeCompare(b.label);
           });
-          return { root: k, anchor: anchor, words: g };
-        }).filter(function (g) { return g.words.length >= 2; })
-          .sort(function (a, b) {
-            if (b.words.length !== a.words.length) return b.words.length - a.words.length;
-            return a.anchor.label.localeCompare(b.anchor.label);
-          });
+          return { root: k, anchor: anchor, words: g, isSingleton: g.length === 1 };
+        });
+        // Pairs/triplets first (anchored meaning), then singles alphabetically.
+        meaningGroups.sort(function (a, b) {
+          if (a.isSingleton !== b.isSingleton) return a.isSingleton ? 1 : -1;
+          if (b.words.length !== a.words.length) return b.words.length - a.words.length;
+          return a.anchor.label.localeCompare(b.anchor.label);
+        });
 
         // Pre-compute each node's strongest partner so cohort pills can pair with a real semantic neighbor.
         var bestPartnerMap = {}, bestPartnerWeightMap = {};
@@ -440,13 +444,13 @@
           if (e.weight > tBest) { bestPartnerWeightMap[e.target] = e.weight; bestPartnerMap[e.target] = e.source; }
         });
 
-        var totalInGroups = meaningGroups.reduce(function (s, g) { return s + g.words.length; }, 0);
-        var ungroupedCount = data.nodes.length - totalInGroups;
+        // Stats: count pairs vs singles separately so the user sees the structure.
+        var pairCount = meaningGroups.filter(function (g) { return g.words.length >= 2; }).length;
+        var singletonCount = meaningGroups.length - pairCount;
         var sub = document.createElement('div');
         sub.className = 'browse-meaning-sub';
-        sub.innerHTML = '🔗 ' + meaningGroups.length + ' closest-meaning pair' + (meaningGroups.length === 1 ? '' : 's') +
-          ' covering ' + totalInGroups + ' word' + (totalInGroups === 1 ? '' : 's') +
-          (ungroupedCount > 0 ? ' &middot; ' + ungroupedCount + ' standalone word' + (ungroupedCount === 1 ? '' : 's') + ' available in Categories view' : '');
+        sub.innerHTML = '🔗 ' + pairCount + ' closest-meaning pair' + (pairCount === 1 ? '' : 's') +
+          ' &middot; ' + singletonCount + ' standalone word' + (singletonCount === 1 ? '' : 's');
         meaningContainer.appendChild(sub);
 
         // Render each cluster as its own distinct card.
