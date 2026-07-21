@@ -49,21 +49,40 @@
         [data-theme="dark"] .browse-index-num { background: var(--color-silver); }
         [data-theme="dark"] .browse-index-num--even { background: #334155; }
 
-        /* Meaning groups view */
+        /* Meaning groups view (flat layout: cluster sections with tile grids, no cards/toggles) */
         .browse-meanings { display: none; }
         .browse-meanings.is-visible { display: block; }
         .browse-meaning-sub { text-align: center; font-size: 13px; color: var(--color-graphite); margin: -8px auto 20px; max-width: 520px; opacity: 0.85; }
-        .browse-meaning-anchor { font-style: italic; font-weight: 700; }
-        .browse-meaning-card { border-left: 3px solid var(--color-grape-soda); }
-        .browse-meaning-card .browse-card-title { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
-        .browse-meaning-item-tag { display: inline-block; margin-left: 6px; padding: 2px 7px; border-radius: 999px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; background: var(--color-grape-soda); color: white; vertical-align: middle; }
-        /* Cap each meaning card so the page stays scannable when 30+ cards are open at once */
-        .browse-meaning-card .browse-card-body { max-height: clamp(320px, 48vh, 480px); overflow-y: auto; scrollbar-width: thin; padding-right: 8px; box-shadow: inset 0 -16px 16px -14px rgba(0,0,0,0.06); }
-        .browse-meaning-card .browse-card-body::-webkit-scrollbar { width: 6px; }
-        .browse-meaning-card .browse-card-body::-webkit-scrollbar-thumb { background: var(--color-cloud-gray); border-radius: 3px; }
-        [data-theme="dark"] .browse-meaning-card .browse-card-body { box-shadow: inset 0 -16px 16px -14px rgba(255,255,255,0.10); }
-        [data-theme="dark"] .browse-meaning-card .browse-card-body::-webkit-scrollbar-thumb { background: #334155; }
+        .meaning-cluster { margin: 0 0 32px; }
+        .meaning-cluster.is-hidden { display: none; }
+        .meaning-cluster-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 2px solid var(--color-cloud-gray); }
+        .meaning-cluster-title { font-family: var(--font-feather); font-weight: 700; font-size: 22px; letter-spacing: -0.01em; color: var(--color-almost-black); }
+        .meaning-cluster-count { font-size: 13px; font-weight: 700; color: var(--color-graphite); opacity: 0.7; text-transform: uppercase; letter-spacing: 0.05em; }
+        .meaning-cluster-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+        .meaning-pill { padding: 12px 14px; border: 1.5px solid var(--color-cloud-gray); border-radius: 10px; background: var(--color-snow-white); transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease; }
+        .meaning-pill:hover { transform: translateY(-1px); border-color: var(--color-graphite); }
+        .meaning-pill.is-anchor { border-width: 2px; }
+        .meaning-pill.is-highlighted { background: rgba(165,112,255,0.10); border-color: var(--color-grape-soda); }
+        .meaning-pill.is-muted { opacity: 0.4; border-color: rgba(0,0,0,0.05); }
+        .meaning-pill-main { display: flex; align-items: center; gap: 8px; min-height: 26px; }
+        .meaning-pill-emoji { font-size: 18px; flex-shrink: 0; }
+        .meaning-pill-label { font-family: var(--font-feather); font-weight: 700; font-size: 15px; color: var(--color-almost-black); flex-grow: 1; min-width: 0; }
+        .meaning-pill-tag { display: inline-block; padding: 2px 7px; border-radius: 999px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: white; flex-shrink: 0; }
+        .meaning-pill-desc { font-size: 13px; color: var(--color-graphite); line-height: 1.4; margin-top: 6px; opacity: 0.85; }
+
+        [data-theme="dark"] .meaning-cluster-head { border-color: #334155; }
+        [data-theme="dark"] .meaning-cluster-title,
+        [data-theme="dark"] .meaning-pill-label { color: var(--text-main); }
+        [data-theme="dark"] .meaning-cluster-count { color: var(--color-silver); }
+        [data-theme="dark"] .meaning-pill { background: #1e293b; border-color: #334155; }
+        [data-theme="dark"] .meaning-pill.is-highlighted { background: rgba(165,112,255,0.18); border-color: var(--color-grape-soda); }
+        [data-theme="dark"] .meaning-pill-desc { color: var(--color-silver); opacity: 0.9; }
         [data-theme="dark"] .browse-meaning-sub { color: var(--color-silver); }
+
+        @media (max-width: 480px) {
+          .meaning-cluster-grid { grid-template-columns: 1fr; }
+          .meaning-cluster-title { font-size: 18px; }
+        }
 
         @media (max-width: 700px) {
           .browse-index-row { flex-wrap: wrap; gap: 6px; padding: 8px 12px; }
@@ -189,7 +208,6 @@
         var meaningCards = [];
         var meaningItemRegisters = [];
         var meaningOrder = [];
-        var meaningGrid = null;
         data.nodes.forEach(function (n) { nodeMap[n.id] = n; if (!cats[n.category]) cats[n.category] = []; cats[n.category].push(n); });
         data.edges.forEach(function (e) {
           if (!adj[e.source]) adj[e.source] = []; if (!adj[e.target]) adj[e.target] = [];
@@ -234,7 +252,7 @@
           });
           Object.keys(byCard).forEach(function (cardEl) {
             var arr = byCard[cardEl];
-            var body = arr[0].card.querySelector('.browse-card-body');
+            var body = arr[0].card.querySelector('.browse-card-body, .meaning-cluster-grid');
             if (!body) return;
             arr.forEach(function (x) { body.appendChild(x.el); });
           });
@@ -252,7 +270,7 @@
 
           // Pick which items / cards / grid the active mode operates on
           var items, cards, gridEl;
-          if (meaningsMode)     { items = meaningItemRegisters; cards = meaningCards; gridEl = meaningGrid; }
+          if (meaningsMode)     { items = meaningItemRegisters; cards = meaningCards; gridEl = meaningContainer; }
           else if (indexMode)   { items = null;                 cards = null;           gridEl = null; }
           else                  { items = allItems;             cards = cardOrder;      gridEl = grid; }
 
@@ -262,7 +280,7 @@
             if (indexMode) {
               indexRows.forEach(function (r) { r.el.style.display = ''; });
             } else if (meaningsMode) {
-              meaningOrder.forEach(function (c) { meaningGrid.appendChild(c); c.classList.remove('is-hidden'); });
+              meaningOrder.forEach(function (c) { meaningContainer.appendChild(c); c.classList.remove('is-hidden'); });
               restoreItemOrder(meaningItemRegisters);
             } else {
               cardOrder.forEach(function (c) { grid.appendChild(c); });
@@ -304,7 +322,7 @@
             matchedCards.forEach(function (c) { gridEl.appendChild(c); c.classList.remove('is-hidden'); c.classList.add('open'); });
             unmatchedCards.forEach(function (c) { gridEl.appendChild(c); c.classList.add('is-hidden'); c.classList.remove('open'); });
             matchedCards.forEach(function (card) {
-              var body = card.querySelector('.browse-card-body');
+              var body = card.querySelector('.browse-card-body, .meaning-cluster-grid');
               if (!body) return;
               var sel = meaningsMode ? '.browse-meaning-item' : '.browse-item';
               var itemEls = [].slice.call(body.querySelectorAll(sel));
@@ -375,16 +393,17 @@
             return a.anchor.label.localeCompare(b.anchor.label);
           });
 
-        // Render meaning grid
-        meaningGrid = document.createElement('div');
-        meaningGrid.className = 'browse-grid';
-        meaningContainer.appendChild(meaningGrid);
+        // Stats line first so it stays at the top regardless of search reordering
+        var totalInGroups = meaningGroups.reduce(function (s, g) { return s + g.words.length; }, 0);
+        var ungroupedCount = data.nodes.length - totalInGroups;
+        var sub = document.createElement('div');
+        sub.className = 'browse-meaning-sub';
+        sub.innerHTML = '🔗 ' + meaningGroups.length + ' semantic clusters covering ' + totalInGroups + ' words' +
+          (ungroupedCount > 0 ? ' · ' + ungroupedCount + ' standalone word' + (ungroupedCount === 1 ? '' : 's') + ' available in Categories view' : '');
+        meaningContainer.appendChild(sub);
 
+        // Render each cluster as a flat section with a grid of pill tiles (no cards, no toggles)
         meaningGroups.forEach(function (group) {
-          var card = document.createElement('div');
-          card.className = 'browse-card browse-meaning-card';
-          card.classList.add('open'); // meaning cards always show their cluster content
-          // Pick dominant theme color (the most common category in the group)
           var catCount = {};
           group.words.forEach(function (w) { catCount[w.category] = (catCount[w.category] || 0) + 1; });
           var mainCat = group.words[0].category;
@@ -393,54 +412,48 @@
             if (catCount[ck] > mainCount) { mainCat = ck; mainCount = catCount[ck]; }
           });
           var themeColor = catColorMap[mainCat] || '#a570ff';
-          var mainCatDisplay = mainCat.charAt(0).toUpperCase() + mainCat.slice(1);
 
-          var hdr = document.createElement('div');
-          hdr.className = 'browse-card-header';
-          hdr.innerHTML =
-            '<span class="browse-card-dot" style="background:' + themeColor + '"></span>' +
-            '<span class="browse-card-title"><span class="browse-meaning-anchor">' + group.anchor.label + '</span> &amp; similar</span>' +
-            '<span class="browse-card-count">' + group.words.length + '</span>' +
-            '<span class="browse-card-toggle">▶</span>';
-          hdr.addEventListener('click', function () { card.classList.toggle('open'); });
-          card.appendChild(hdr);
-          var body = document.createElement('div');
-          body.className = 'browse-card-body';
+          var section = document.createElement('section');
+          section.className = 'meaning-cluster';
+
+          var head = document.createElement('div');
+          head.className = 'meaning-cluster-head';
+          head.innerHTML =
+            '<span class="meaning-cluster-title" style="color:' + themeColor + '">' + group.anchor.label + '</span>' +
+            '<span class="meaning-cluster-count">& similar · ' + group.words.length + ' word' + (group.words.length === 1 ? '' : 's') + '</span>';
+          section.appendChild(head);
+
+          var gridEl = document.createElement('div');
+          gridEl.className = 'meaning-cluster-grid';
+
           group.words.forEach(function (node) {
-            var item = document.createElement('div');
-            item.className = 'browse-item browse-meaning-item';
-            var emoji = node.emoji || '';
+            var pill = document.createElement('div');
             var isAnchor = (node.id === group.anchor.id);
-            var labelExtra = isAnchor ? ' <span class="browse-meaning-item-tag">anchor</span>' : '';
-            item.innerHTML =
-              '<div class="browse-item-main">' +
-                '<span class="browse-item-emoji">' + emoji + '</span>' +
-                '<span class="browse-item-label">' + node.label + labelExtra + '</span>' +
+            pill.className = 'meaning-pill' + (isAnchor ? ' is-anchor' : '');
+            if (isAnchor) pill.style.borderColor = themeColor;
+            var tagHtml = isAnchor ? '<span class="meaning-pill-tag" style="background:' + themeColor + '">anchor</span>' : '';
+            var emojiHtml = node.emoji ? '<span class="meaning-pill-emoji">' + node.emoji + '</span>' : '';
+            pill.innerHTML =
+              '<div class="meaning-pill-main">' +
+                emojiHtml +
+                '<span class="meaning-pill-label">' + node.label + '</span>' +
+                tagHtml +
               '</div>' +
-              '<div class="browse-item-meaning">' + (node.description || '') + '</div>';
-            body.appendChild(item);
+              '<div class="meaning-pill-desc">' + (node.description || '') + '</div>';
+            gridEl.appendChild(pill);
             var conns = adj[node.id] || [];
             var labels = conns.map(function (id) { var nn = nodeMap[id]; return nn ? nn.label : ''; }).filter(Boolean);
             meaningItemRegisters.push({
-              el: item,
-              card: card,
+              el: pill,
+              card: section,
               text: (node.label + ' ' + (node.description || '') + ' ' + labels.join(' ')).toLowerCase()
             });
           });
-          card.appendChild(body);
-          meaningGrid.appendChild(card);
-          meaningCards.push(card);
-          meaningOrder.push(card);
+          section.appendChild(gridEl);
+          meaningContainer.appendChild(section);
+          meaningCards.push(section);
+          meaningOrder.push(section);
         });
-
-        // Stats line
-        var totalInGroups = meaningGroups.reduce(function (s, g) { return s + g.words.length; }, 0);
-        var ungroupedCount = data.nodes.length - totalInGroups;
-        var sub = document.createElement('div');
-        sub.className = 'browse-meaning-sub';
-        sub.innerHTML = '🔗 ' + meaningGroups.length + ' semantic clusters covering ' + totalInGroups + ' words' +
-          (ungroupedCount > 0 ? ' · ' + ungroupedCount + ' standalone word' + (ungroupedCount === 1 ? '' : 's') + ' available in Categories view' : '');
-        meaningContainer.insertBefore(sub, meaningGrid);
 
         /* ── Index mode ── */
         var indexMode = false, indexRows = [];
