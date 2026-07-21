@@ -49,6 +49,15 @@
         [data-theme="dark"] .browse-index-num { background: var(--color-silver); }
         [data-theme="dark"] .browse-index-num--even { background: #334155; }
 
+        /* Meaning groups view */
+        .browse-meanings { display: none; }
+        .browse-meanings.is-visible { display: block; }
+        .browse-meaning-sub { text-align: center; font-size: 13px; color: var(--color-graphite); margin: -8px auto 20px; max-width: 520px; opacity: 0.85; }
+        .browse-meaning-anchor { font-style: italic; font-weight: 700; }
+        .browse-meaning-card { border-left: 3px solid var(--color-grape-soda); }
+        .browse-meaning-card .browse-card-title { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+        [data-theme="dark"] .browse-meaning-sub { color: var(--color-silver); }
+
         @media (max-width: 700px) {
           .browse-index-row { flex-wrap: wrap; gap: 6px; padding: 8px 12px; }
           .browse-index-word { min-width: 0; font-size: 14px; }
@@ -141,6 +150,7 @@
                 <div class="browse-mode-bar">
                     <button class="browse-mode-btn is-active" id="vocabModeCats" type="button">📂 Categories</button>
                     <button class="browse-mode-btn" id="vocabModeIndex" type="button">📋 Numbered Index</button>
+                    <button class="browse-mode-btn" id="vocabModeMeanings" type="button">🔗 By Meaning</button>
                 </div>
                 <div class="browse-search-empty" id="vocabSearchEmpty">
                     <div class="browse-search-empty-icon">🔍</div>
@@ -148,6 +158,7 @@
                 </div>
                 <div class="browse-categories is-visible" id="vocabCategories"><div class="browse-grid" id="vocabGrid"></div></div>
                 <div class="browse-index" id="vocabIndex"></div>
+                <div class="browse-meanings" id="vocabMeanings"></div>
                 <div class="browse-actions">
                     <a class="browse-btn browse-btn--vocab" href="./vocab.html">📇 Study with flashcards</a>
                     <a class="browse-btn browse-btn--outline" href="./index.html">🏠 Back to Home</a>
@@ -199,6 +210,22 @@
           card.appendChild(body); grid.appendChild(card);
         });
 
+        /* ── Search helpers ── */
+        // Re-appends items in their original registration order so search-time reordering doesn't persist after clear.
+        function restoreItemOrder(items) {
+          var byCard = {};
+          items.forEach(function (x) {
+            if (!byCard[x.card]) byCard[x.card] = [];
+            byCard[x.card].push(x);
+          });
+          Object.keys(byCard).forEach(function (cardEl) {
+            var arr = byCard[cardEl];
+            var body = arr[0].card.querySelector('.browse-card-body');
+            if (!body) return;
+            arr.forEach(function (x) { body.appendChild(x.el); });
+          });
+        }
+
         /* ── Search ── */
         var searchInput = document.getElementById('vocabSearch');
         var searchClear = document.getElementById('vocabSearchClear');
@@ -208,58 +235,71 @@
         function doSearch() {
           var q = searchInput.value.trim().toLowerCase();
           searchClear.style.display = q ? 'flex' : 'none';
+
+          // Pick which items / cards / grid the active mode operates on
+          var items, cards, gridEl;
+          if (meaningsMode)     { items = meaningItemRegisters; cards = meaningCards; gridEl = meaningGrid; }
+          else if (indexMode)   { items = null;                 cards = null;           gridEl = null; }
+          else                  { items = allItems;             cards = cardOrder;      gridEl = grid; }
+
           if (!q) {
             searchCount.style.display = 'none';
             searchEmpty.style.display = 'none';
             if (indexMode) {
               indexRows.forEach(function (r) { r.el.style.display = ''; });
+            } else if (meaningsMode) {
+              meaningOrder.forEach(function (c) { meaningGrid.appendChild(c); c.classList.remove('is-hidden', 'open'); });
+              restoreItemOrder(meaningItemRegisters);
             } else {
               cardOrder.forEach(function (c) { grid.appendChild(c); });
               allItems.forEach(function (x) {
                 x.card.classList.remove('is-hidden');
-                x.el.classList.remove('is-highlighted', 'is-muted');
                 x.card.classList.remove('open');
+                x.el.classList.remove('is-highlighted', 'is-muted');
               });
+              restoreItemOrder(allItems);
             }
             return;
           }
-          var isIndex = indexMode;
+
           var anyMatch = false;
           var matchCount = 0;
-          // Pass 1: highlight matching items, mute non-matching
-          allItems.forEach(function (x) {
-            var match = x.text.indexOf(q) !== -1;
-            if (match) { anyMatch = true; matchCount++; x.el.classList.add('is-highlighted'); x.el.classList.remove('is-muted'); }
-            else { x.el.classList.add('is-muted'); x.el.classList.remove('is-highlighted'); }
-          });
 
-          if (!isIndex) {
-            // Category mode: sort cards
+          if (indexMode) {
+            // Index mode: filter individual rows
+            indexRows.forEach(function (r) {
+              var match = r.text.indexOf(q) !== -1;
+              if (match) { anyMatch = true; matchCount++; r.el.style.display = ''; }
+              else { r.el.style.display = 'none'; }
+            });
+          } else {
+            // Card modes (cats / meanings): highlight/mute items
+            items.forEach(function (x) {
+              var match = x.text.indexOf(q) !== -1;
+              if (match) { anyMatch = true; matchCount++; x.el.classList.add('is-highlighted'); x.el.classList.remove('is-muted'); }
+              else { x.el.classList.add('is-muted'); x.el.classList.remove('is-highlighted'); }
+            });
+
+            // Sort cards (matched to top), hide unmatched, auto-open matched
             var matchedCards = [], unmatchedCards = [];
-            cardOrder.forEach(function (card) {
+            cards.forEach(function (card) {
               var hasMatch = false;
-              allItems.forEach(function (x) { if (x.card === card && x.text.indexOf(q) !== -1) hasMatch = true; });
+              items.forEach(function (x) { if (x.card === card && x.text.indexOf(q) !== -1) hasMatch = true; });
               if (hasMatch) matchedCards.push(card); else unmatchedCards.push(card);
             });
-            matchedCards.forEach(function (c) { grid.appendChild(c); c.classList.remove('is-hidden'); c.classList.add('open'); });
-            unmatchedCards.forEach(function (c) { grid.appendChild(c); c.classList.add('is-hidden'); c.classList.remove('open'); });
+            matchedCards.forEach(function (c) { gridEl.appendChild(c); c.classList.remove('is-hidden'); c.classList.add('open'); });
+            unmatchedCards.forEach(function (c) { gridEl.appendChild(c); c.classList.add('is-hidden'); c.classList.remove('open'); });
             matchedCards.forEach(function (card) {
               var body = card.querySelector('.browse-card-body');
               if (!body) return;
-              var items = [].slice.call(body.querySelectorAll('.browse-item'));
-              var matched = [], unmatched = [];
-              items.forEach(function (el) {
-                if (el.classList.contains('is-highlighted')) matched.push(el); else unmatched.push(el);
+              var sel = meaningsMode ? '.browse-meaning-item' : '.browse-item';
+              var itemEls = [].slice.call(body.querySelectorAll(sel));
+              var matchedInCard = [], unmatchedInCard = [];
+              itemEls.forEach(function (el) {
+                if (el.classList.contains('is-highlighted')) matchedInCard.push(el); else unmatchedInCard.push(el);
               });
-              matched.forEach(function (el) { body.appendChild(el); });
-              unmatched.forEach(function (el) { body.appendChild(el); });
-            });
-          } else {
-            // Index mode: filter index rows
-            var rows = indexRows;
-            rows.forEach(function (r) {
-              var match = r.text.indexOf(q) !== -1;
-              r.el.style.display = match ? '' : 'none';
+              matchedInCard.forEach(function (el) { body.appendChild(el); });
+              unmatchedInCard.forEach(function (el) { body.appendChild(el); });
             });
           }
           searchCount.style.display = 'block';
@@ -268,6 +308,127 @@
         }
         searchInput.addEventListener('input', doSearch);
         searchClear.addEventListener('click', function () { searchInput.value = ''; searchInput.focus(); doSearch(); });
+
+        /* ── Meanings mode (semantic clusters via union-find) ── */
+        var meaningsMode = false;
+        var meaningContainer = document.getElementById('vocabMeanings');
+        var meaningCards = [];
+        var meaningItemRegisters = [];
+        var meaningOrder = []; // original order for reset
+
+        // Compute weighted degree of each node
+        var degreeMap = {};
+        data.nodes.forEach(function (n) { degreeMap[n.id] = 0; });
+        data.edges.forEach(function (e) {
+          if (degreeMap[e.source] != null) degreeMap[e.source] += e.weight;
+          if (degreeMap[e.target] != null) degreeMap[e.target] += e.weight;
+        });
+
+        // Union-Find with weight threshold 1.5 (thinker's recommended cutoff)
+        var parent = {};
+        data.nodes.forEach(function (n) { parent[n.id] = n.id; });
+        function dsuFind(x) {
+          while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; }
+          return x;
+        }
+        function dsuUnion(a, b) {
+          var ra = dsuFind(a), rb = dsuFind(b);
+          if (ra !== rb) parent[ra] = rb;
+        }
+        data.edges.forEach(function (e) {
+          if (e.weight >= 1.5) dsuUnion(e.source, e.target);
+        });
+        var rawGroups = {};
+        data.nodes.forEach(function (n) {
+          var r = dsuFind(n.id);
+          if (!rawGroups[r]) rawGroups[r] = [];
+          rawGroups[r].push(n);
+        });
+
+        // Filter out singletons; sort groups by size desc, then by anchor label
+        var meaningGroups = Object.keys(rawGroups).map(function (k) {
+          var g = rawGroups[k];
+          var anchor = g[0];
+          for (var i = 1; i < g.length; i++) {
+            if (degreeMap[g[i].id] > degreeMap[anchor.id]) anchor = g[i];
+          }
+          // Sort words by degree desc, then label asc as tiebreaker
+          g.sort(function (a, b) {
+            var dd = degreeMap[b.id] - degreeMap[a.id];
+            if (dd !== 0) return dd;
+            return a.label.localeCompare(b.label);
+          });
+          return { root: k, anchor: anchor, words: g };
+        }).filter(function (g) { return g.words.length >= 2; })
+          .sort(function (a, b) {
+            if (b.words.length !== a.words.length) return b.words.length - a.words.length;
+            return a.anchor.label.localeCompare(b.anchor.label);
+          });
+
+        // Render meaning grid
+        var meaningGrid = document.createElement('div');
+        meaningGrid.className = 'browse-grid';
+        meaningContainer.appendChild(meaningGrid);
+
+        meaningGroups.forEach(function (group) {
+          var card = document.createElement('div');
+          card.className = 'browse-card browse-meaning-card';
+          // Pick dominant theme color (the most common category in the group)
+          var catCount = {};
+          group.words.forEach(function (w) { catCount[w.category] = (catCount[w.category] || 0) + 1; });
+          var mainCat = group.words[0].category;
+          var mainCount = 0;
+          Object.keys(catCount).forEach(function (ck) {
+            if (catCount[ck] > mainCount) { mainCat = ck; mainCount = catCount[ck]; }
+          });
+          var themeColor = catColorMap[mainCat] || '#a570ff';
+          var mainCatDisplay = mainCat.charAt(0).toUpperCase() + mainCat.slice(1);
+
+          var hdr = document.createElement('div');
+          hdr.className = 'browse-card-header';
+          hdr.innerHTML =
+            '<span class="browse-card-dot" style="background:' + themeColor + '"></span>' +
+            '<span class="browse-card-title"><span class="browse-meaning-anchor">' + group.anchor.label + '</span> &amp; similar</span>' +
+            '<span class="browse-card-count">' + group.words.length + '</span>' +
+            '<span class="browse-card-toggle">▶</span>';
+          hdr.addEventListener('click', function () { card.classList.toggle('open'); });
+          card.appendChild(hdr);
+          var body = document.createElement('div');
+          body.className = 'browse-card-body';
+          group.words.forEach(function (node) {
+            var item = document.createElement('div');
+            item.className = 'browse-item browse-meaning-item';
+            var emoji = node.emoji || '';
+            var labelExtra = (node.id === group.anchor.id) ? ' (anchor)' : '';
+            item.innerHTML =
+              '<div class="browse-item-main">' +
+                '<span class="browse-item-emoji">' + emoji + '</span>' +
+                '<span class="browse-item-label">' + node.label + labelExtra + '</span>' +
+              '</div>' +
+              '<div class="browse-item-meaning">' + (node.description || '') + '</div>';
+            body.appendChild(item);
+            var conns = adj[node.id] || [];
+            var labels = conns.map(function (id) { var nn = nodeMap[id]; return nn ? nn.label : ''; }).filter(Boolean);
+            meaningItemRegisters.push({
+              el: item,
+              card: card,
+              text: (node.label + ' ' + (node.description || '') + ' ' + labels.join(' ')).toLowerCase()
+            });
+          });
+          card.appendChild(body);
+          meaningGrid.appendChild(card);
+          meaningCards.push(card);
+          meaningOrder.push(card);
+        });
+
+        // Stats line
+        var totalInGroups = meaningGroups.reduce(function (s, g) { return s + g.words.length; }, 0);
+        var ungroupedCount = data.nodes.length - totalInGroups;
+        var sub = document.createElement('div');
+        sub.className = 'browse-meaning-sub';
+        sub.innerHTML = '🔗 ' + meaningGroups.length + ' semantic clusters covering ' + totalInGroups + ' words' +
+          (ungroupedCount > 0 ? ' · ' + ungroupedCount + ' standalone word' + (ungroupedCount === 1 ? '' : 's') + ' available in Categories view' : '');
+        meaningContainer.insertBefore(sub, meaningGrid);
 
         /* ── Index mode ── */
         var indexMode = false, indexRows = [];
@@ -297,19 +458,25 @@
           });
         });
 
+        var modeMeanings = document.getElementById('vocabModeMeanings');
+
         function switchVocabMode(mode) {
           indexMode = (mode === 'index');
-          modeCats.classList.toggle('is-active', !indexMode);
+          meaningsMode = (mode === 'meanings');
+          modeCats.classList.toggle('is-active', !indexMode && !meaningsMode);
           modeIndex.classList.toggle('is-active', indexMode);
-          catsContainer.classList.toggle('is-hidden-state', indexMode);
-          catsContainer.classList.toggle('is-visible', !indexMode);
+          modeMeanings.classList.toggle('is-active', meaningsMode);
+          catsContainer.classList.toggle('is-hidden-state', indexMode || meaningsMode);
+          catsContainer.classList.toggle('is-visible', !indexMode && !meaningsMode);
           indexContainer.classList.toggle('is-visible', indexMode);
+          meaningContainer.classList.toggle('is-visible', meaningsMode);
           // Re-run search to update visible state
           doSearch();
         }
 
         modeCats.addEventListener('click', function () { switchVocabMode('cats'); });
         modeIndex.addEventListener('click', function () { switchVocabMode('index'); });
+        modeMeanings.addEventListener('click', function () { switchVocabMode('meanings'); });
       })();
     </script>
 </body>
