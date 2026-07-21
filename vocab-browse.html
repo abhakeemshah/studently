@@ -190,6 +190,8 @@
           if (adj[e.source].indexOf(e.target) === -1) adj[e.source].push(e.target);
           if (adj[e.target].indexOf(e.source) === -1) adj[e.target].push(e.source);
         });
+        var catColorMap = {};
+        data.nodes.forEach(function (n) { catColorMap[n.category] = n.color; });
         Object.keys(cats).sort().forEach(function (cat) {
           var items = cats[cat], color = items[0].color || '#a570ff';
           var card = document.createElement('div'); card.className = 'browse-card';
@@ -316,11 +318,7 @@
         searchClear.addEventListener('click', function () { searchInput.value = ''; searchInput.focus(); doSearch(); });
 
         /* ── Meanings mode (semantic clusters via union-find) ── */
-        var meaningsMode = false;
         var meaningContainer = document.getElementById('vocabMeanings');
-        var meaningCards = [];
-        var meaningItemRegisters = [];
-        var meaningOrder = []; // original order for reset
 
         // Compute weighted degree of each node
         var degreeMap = {};
@@ -372,7 +370,7 @@
           });
 
         // Render meaning grid
-        var meaningGrid = document.createElement('div');
+        meaningGrid = document.createElement('div');
         meaningGrid.className = 'browse-grid';
         meaningContainer.appendChild(meaningGrid);
 
@@ -443,8 +441,6 @@
         var catsContainer = document.getElementById('vocabCategories');
         var modeCats = document.getElementById('vocabModeCats');
         var modeIndex = document.getElementById('vocabModeIndex');
-        var catColorMap = {};
-        data.nodes.forEach(function (n) { catColorMap[n.category] = n.color; });
 
         // Build index rows from all nodes
         data.nodes.forEach(function (node, i) {
