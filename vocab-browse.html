@@ -388,64 +388,20 @@
           if (degreeMap[e.target] != null) degreeMap[e.target] += e.weight;
         });
 
-        // 1-hop greedy star clustering: replaces DSU to prevent transitive chaining.
-        // Each cluster is anchored on the highest-degree unclaimed node and contains
-        // only its DIRECT same-theme neighbors at weight >= 1.5. This guarantees
-        // every word in a cluster is genuinely related to the cluster's anchor,
-        // so "AMBIGUOUS & similar" really does contain words that come under
-        // ambiguity, not chain-pulled words from 4 hops away.
+        // Per-word cohort rendering: every word that has at least one direct strong
+        // same-theme neighbor (edge weight ≥ 1.5) gets its OWN card. The card's
+        // heading is the word itself, and the body lists its DIRECT related
+        // words — no transitive chains, no merged clusters. This is what the
+        // user asked for: "separate box for separate words cohort".
         var edgeWeightMap = {};
         data.edges.forEach(function (e) {
           edgeWeightMap[e.source + '|' + e.target] = e.weight;
           edgeWeightMap[e.target + '|' + e.source] = e.weight;
         });
 
-        var used = {};
-        var meaningGroups = [];
-
-        var sortedNodes = data.nodes.slice().sort(function (a, b) {
-          return degreeMap[b.id] - degreeMap[a.id];
-        });
-
-        sortedNodes.forEach(function (anchor) {
-          if (used[anchor.id]) return;
-
-          var group = [anchor];
-          var conns = adj[anchor.id] || [];
-
-          conns.forEach(function (cid) {
-            if (used[cid]) return;
-            var w = edgeWeightMap[anchor.id + '|' + cid];
-            var neighbor = nodeMap[cid];
-            if (w >= 1.5 && neighbor && neighbor.category === anchor.category) {
-              group.push(neighbor);
-              used[cid] = true;
-            }
-          });
-
-          if (group.length >= 2) {
-            used[anchor.id] = true;
-            group.sort(function (a, b) {
-              var dd = degreeMap[b.id] - degreeMap[a.id];
-              return dd !== 0 ? dd : a.label.localeCompare(b.label);
-            });
-            meaningGroups.push({ root: anchor.id, anchor: anchor, words: group });
-          } else {
-            // Solo anchor: leave avail so a lower-degree node later might claim it,
-            // but if not, it counts toward the standalone total via the ungroupedCount
-            // math further down.
-            used[anchor.id] = false;
-          }
-        });
-
-        meaningGroups.sort(function (a, b) {
-          if (b.words.length !== a.words.length) return b.words.length - a.words.length;
-          return a.anchor.label.localeCompare(b.anchor.label);
-        });
-
         // Pre-compute each node's strongest partner (highest-weight edge endpoint)
-        // so every label below can pair with a real semantic neighbor instead of
-        // sitting as a single abstract word. Falls back when a node has no edges.
+        // so cohort pills can pair with a real semantic neighbor instead of
+        // sitting as a single abstract word.
         var bestPartnerMap = {}, bestPartnerWeightMap = {};
         data.nodes.forEach(function (n) { bestPartnerMap[n.id] = null; bestPartnerWeightMap[n.id] = -1; });
         data.edges.forEach(function (e) {
@@ -454,33 +410,35 @@
           if (e.weight > tBest) { bestPartnerWeightMap[e.target] = e.weight; bestPartnerMap[e.target] = e.source; }
         });
 
-        // Stats line first so it stays at the top regardless of search reordering
-        var totalInGroups = meaningGroups.reduce(function (s, g) { return s + g.words.length; }, 0);
-        var ungroupedCount = data.nodes.length - totalInGroups;
-        var sub = document.createElement('div');
-        sub.className = 'browse-meaning-sub';
-        sub.innerHTML = '🔗 ' + meaningGroups.length + ' semantic clusters covering ' + totalInGroups + ' words' +
-          (ungroupedCount > 0 ? ' · ' + ungroupedCount + ' standalone word' + (ungroupedCount === 1 ? '' : 's') + ' available in Categories view' : '');
-        meaningContainer.appendChild(sub);
+        var cardsRendered = 0;
+        var totalRelationsShown = 0;
 
-        // Each cluster is rendered as its own visually distinct card with a themed
-        // accent spine. Same-theme clusters share the accent color; the spacing
-        // between cards makes each cluster feel like its own unit.
-        meaningGroups.forEach(function (group) {
-          var catCount = {};
-          group.words.forEach(function (w) { catCount[w.category] = (catCount[w.category] || 0) + 1; });
-          var mainCat = group.anchor.category;
-          var mainCount = catCount[mainCat] || 0;
-          Object.keys(catCount).forEach(function (ck) {
-            if (catCount[ck] > mainCount) { mainCat = ck; mainCount = catCount[ck]; }
+        // Sort by label so the page reads alphabetically — a word-by-word catalog.
+        var sortedByLabel = data.nodes.slice().sort(function (a, b) {
+          return a.label.localeCompare(b.label);
+        });
+        sortedByLabel.forEach(function (node) {
+          // Build cohort = direct same-theme neighbors at weight ≥ 1.5
+          var cohort = [];
+          (adj[node.id] || []).forEach(function (cid) {
+            var other = nodeMap[cid];
+            if (!other) return;
+            var w = edgeWeightMap[node.id + '|' + cid];
+            if (other.category === node.category && w >= 1.5 && cid !== node.id) {
+              cohort.push({ node: other, weight: w });
+            }
           });
-          var themeColor = catColorMap[mainCat] || '#a570ff';
+          if (cohort.length === 0) return;  // standalone: no card
+
+          cohort.sort(function (a, b) {
+            return b.weight - a.weight || a.node.label.localeCompare(b.node.label);
+          });
+          totalRelationsShown += cohort.length;
+
+          var themeColor = catColorMap[node.category] || '#a570ff';
 
           var section = document.createElement('section');
           section.className = 'meaning-cluster';
-          // Each cluster gets a fully themed border and a subtle tinted background
-          // tinted from its theme color, so clusters feel like distinct islands
-          // rather than a continuous list.
           section.style.borderColor = themeColor;
           var hex = themeColor.replace('#', '');
           if (hex.length === 6) {
@@ -492,77 +450,85 @@
             section.style.backgroundColor = 'var(--color-snow-white)';
           }
 
-          // Find the cluster's secondary anchor: the next-highest-degree word
-          // distinct from the primary anchor. Skips nodes with no edges.
-          var secondaryAnchor = null;
-          for (var s = 0; s < group.words.length; s++) {
-            if (group.words[s].id !== group.anchor.id) { secondaryAnchor = group.words[s]; break; }
-          }
-
-          // Also try to give the primary anchor a paired gloss from its strongest
-          // direct edge, so the cluster header always reads as a phrase, not a
-          // lone abstract word.
-          var anchorPartner = null;
-          var anchorPartnerId = bestPartnerMap[group.anchor.id];
-          if (anchorPartnerId) {
-            var anchorPartnerNode = nodeMap[anchorPartnerId];
-            // Ensure the partner is in this cluster so the phrase is coherent.
-            var inCluster = false;
-            for (var k = 0; k < group.words.length; k++) { if (group.words[k].id === anchorPartnerId) { inCluster = true; break; } }
-            if (inCluster) anchorPartner = anchorPartnerNode;
-          }
-          var clusterTitleLabel = group.anchor.label +
-            (anchorPartner && anchorPartner.id !== group.anchor.id ? ' &amp; ' + anchorPartner.label : '');
-
+          // Header: just the word — each card IS its own topic.
           var head = document.createElement('div');
           head.className = 'meaning-cluster-head';
           head.innerHTML =
-            '<span class="meaning-cluster-title" style="color:' + themeColor + '">' + clusterTitleLabel + '</span>' +
-            '<span class="meaning-cluster-count">& similar &middot; ' + group.words.length + ' word' + (group.words.length === 1 ? '' : 's') + '</span>';
+            '<span class="meaning-cluster-title" style="color:' + themeColor + '">' + node.label + '</span>' +
+            '<span class="meaning-cluster-count">cohort &middot; ' + cohort.length + ' word' + (cohort.length === 1 ? '' : 's') + '</span>';
           section.appendChild(head);
 
           var gridEl = document.createElement('div');
           gridEl.className = 'meaning-cluster-grid';
 
-          group.words.forEach(function (node) {
-            var isAnchor = (node.id === group.anchor.id);
+          // Root pill first — the card's subject word, marked to anchor the visual hierarchy.
+          var anchorPill = document.createElement('div');
+          anchorPill.className = 'meaning-pill is-anchor';
+          anchorPill.style.borderColor = themeColor;
+          var anchorEmoji = node.emoji ? '<span class="meaning-pill-emoji">' + node.emoji + '</span>' : '';
+          anchorPill.innerHTML =
+            '<div class="meaning-pill-main">' +
+              anchorEmoji +
+              '<span class="meaning-pill-label">' + node.label + '</span>' +
+              '<span class="meaning-pill-tag" style="background:' + themeColor + '">root</span>' +
+            '</div>' +
+            '<div class="meaning-pill-desc">' + (node.description || '') + '</div>';
+          gridEl.appendChild(anchorPill);
+
+          meaningItemRegisters.push({
+            el: anchorPill,
+            card: section,
+            text: (node.label + ' ' + (node.description || '')).toLowerCase()
+          });
+
+          // Cohort pills — direct strong same-theme neighbors with their strongest partner subtitle.
+          cohort.forEach(function (entry) {
+            var relNode = entry.node;
             var pill = document.createElement('div');
-            pill.className = 'meaning-pill' + (isAnchor ? ' is-anchor' : '');
-            if (isAnchor) pill.style.borderColor = themeColor;
-            var tagHtml = isAnchor ? '<span class="meaning-pill-tag" style="background:' + themeColor + '">anchor</span>' : '';
-            var emojiHtml = node.emoji ? '<span class="meaning-pill-emoji">' + node.emoji + '</span>' : '';
-            // Find this word's strongest partner (or fall back to the cluster's
-            // secondary anchor) so every pill reads as "Word ~ Partner", not a
-            // single abstract word.
-            var pairId = bestPartnerMap[node.id];
-            var pairNode = pairId ? nodeMap[pairId] : null;
-            var pairLabel = pairNode ? pairNode.label : (secondaryAnchor ? secondaryAnchor.label : '');
-            var pairHtml = pairLabel ? '<span class="meaning-pill-pair">&middot; ' + pairLabel + '</span>' : '';
+            pill.className = 'meaning-pill';
+            var emojiHtml = relNode.emoji ? '<span class="meaning-pill-emoji">' + relNode.emoji + '</span>' : '';
+            var partnerId = bestPartnerMap[relNode.id];
+            var partner = partnerId ? nodeMap[partnerId] : null;
+            var pairHtml = partner ? '<span class="meaning-pill-pair">&middot; ' + partner.label + '</span>' : '';
             pill.innerHTML =
               '<div class="meaning-pill-main">' +
                 emojiHtml +
-                '<span class="meaning-pill-label">' + node.label + '</span>' +
-                tagHtml +
+                '<span class="meaning-pill-label">' + relNode.label + '</span>' +
               '</div>' +
               (pairHtml ? '<div class="meaning-pill-pair-row">' + pairHtml + '</div>' : '') +
-              '<div class="meaning-pill-desc">' + (node.description || '') + '</div>';
+              '<div class="meaning-pill-desc">' + (relNode.description || '') + '</div>';
             gridEl.appendChild(pill);
 
-            var conns = adj[node.id] || [];
-            var labels = conns.map(function (id) { var nn = nodeMap[id]; return nn ? nn.label : ''; }).filter(Boolean);
-            // Include partner label in the searchable text so search matches the new subtag.
-            var searchText = node.label + ' ' + (node.description || '') + ' ' + (pairNode ? pairNode.label : '') + ' ' + labels.join(' ');
             meaningItemRegisters.push({
               el: pill,
               card: section,
-              text: searchText.toLowerCase()
+              text: (relNode.label + ' ' + (relNode.description || '') + ' ' + (partner ? partner.label : '')).toLowerCase()
             });
           });
+
           section.appendChild(gridEl);
           meaningContainer.appendChild(section);
           meaningCards.push(section);
           meaningOrder.push(section);
+          cardsRendered++;
         });
+
+        // Stats line — one card per word-with-cohort; words without a strong
+        // same-theme neighbour are listed as "standalone" (still visible in
+        // Categories view).
+        var standaloneCount = data.nodes.length - cardsRendered;
+        var sub = document.createElement('div');
+        sub.className = 'browse-meaning-sub';
+        sub.innerHTML = '🔗 ' + cardsRendered + ' word cohort' + (cardsRendered === 1 ? '' : 's') +
+          ' &middot; ' + totalRelationsShown + ' direct relation' + (totalRelationsShown === 1 ? '' : 's') +
+          (standaloneCount > 0 ? ' &middot; ' + standaloneCount + ' standalone word' + (standaloneCount === 1 ? '' : 's') + ' available in Categories view' : '');
+        // Place stats line at the top so cards appear below it.
+        var firstCard = meaningContainer.querySelector('.meaning-cluster');
+        if (firstCard) {
+          meaningContainer.insertBefore(sub, firstCard);
+        } else {
+          meaningContainer.appendChild(sub);
+        }
 
         /* ── Index mode ── */
         var indexMode = false, indexRows = [];
