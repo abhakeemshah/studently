@@ -7,7 +7,7 @@
  * Nunito Sans. Importing would silently regress the typography to system-ui
  * fallbacks because the cascade would pick the @imported values last.
  *
- * If you want to consolidate later, first update design/variables.css to
+ * If you want to consolidate later, first update design/variables.css and
  * use 'Fredoka' / 'Nunito Sans', THEN @import here. See CONTEXT_LOG
  * [2026-07-03 11:00] Pre-Execution entry, "Architectural Decisions".
  */
