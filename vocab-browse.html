@@ -400,7 +400,14 @@
           if (ra !== rb) parent[ra] = rb;
         }
         data.edges.forEach(function (e) {
-          if (e.weight >= 1.5) dsuUnion(e.source, e.target);
+          // Require both strong weight AND same category so clusters stay theme-coherent.
+          // Cross-theme 1.5+ bridges no longer chain together, which means clusters are
+          // visually distinct (single accent color) and each header's anchor word matches
+          // the words inside it.
+          var sNode = nodeMap[e.source], tNode = nodeMap[e.target];
+          if (e.weight >= 1.5 && sNode && tNode && sNode.category === tNode.category) {
+            dsuUnion(e.source, e.target);
+          }
         });
         var rawGroups = {};
         data.nodes.forEach(function (n) {
