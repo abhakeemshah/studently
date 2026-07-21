@@ -69,13 +69,19 @@
         .meaning-pill-label { font-family: var(--font-feather); font-weight: 700; font-size: 15px; color: var(--color-almost-black); flex-grow: 1; min-width: 0; }
         .meaning-pill-tag { display: inline-block; padding: 2px 7px; border-radius: 999px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: white; flex-shrink: 0; }
         .meaning-pill-desc { font-size: 13px; color: var(--color-graphite); line-height: 1.4; margin-top: 6px; opacity: 0.85; }
-        .meaning-theme-section { background: var(--color-snow-white); border-radius: 16px; padding: 24px; margin-bottom: 32px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
-        .meaning-theme-section.is-hidden { display: none; }
-        .meaning-theme-title { font-family: var(--font-feather); font-size: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 4px; }
-        .meaning-theme-sub { font-size: 13px; font-weight: 700; color: var(--color-graphite); opacity: 0.65; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1.5px dashed var(--color-cloud-gray); text-transform: uppercase; letter-spacing: 0.06em; }
-        .meaning-theme-section .meaning-cluster:last-child { margin-bottom: 0; }
-        [data-theme="dark"] .meaning-theme-section { background: #1e293b; box-shadow: none; }
-        [data-theme="dark"] .meaning-theme-sub { border-bottom-color: #334155; color: var(--color-silver); }
+        /* Each cluster is its own visually distinct card with a themed accent spine. */
+        .meaning-cluster { position: relative; margin: 0 0 22px; padding: 18px 20px 14px; border: 1.5px solid var(--color-cloud-gray); border-left: 6px solid; border-radius: 12px; background: var(--color-snow-white); box-shadow: 0 1px 2px rgba(0,0,0,0.03); transition: box-shadow 0.15s ease, transform 0.15s ease; }
+        .meaning-cluster:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.10); transform: translateY(-1px); }
+        .meaning-cluster:last-child { margin-bottom: 0; }
+        .meaning-cluster.is-hidden { display: none; }
+        .meaning-cluster-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px dashed var(--color-cloud-gray); }
+        .meaning-cluster-title { font-family: var(--font-feather); font-weight: 700; font-size: 22px; letter-spacing: -0.01em; color: var(--color-almost-black); }
+        .meaning-cluster-count { font-size: 13px; font-weight: 700; color: var(--color-graphite); opacity: 0.7; text-transform: uppercase; letter-spacing: 0.05em; }
+        .meaning-cluster-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+        [data-theme="dark"] .meaning-cluster { background: #1e293b; border-color: #334155; }
+        [data-theme="dark"] .meaning-cluster-head { border-color: #475569; }
+        [data-theme="dark"] .meaning-cluster-title { color: var(--text-main); }
+        [data-theme="dark"] .meaning-cluster-count { color: var(--color-silver); }
         [data-theme="dark"] .meaning-pill:hover { border-color: #475569; }
         [data-theme="dark"] .meaning-cluster-head { border-color: #334155; }
         [data-theme="dark"] .meaning-cluster-title,
@@ -88,8 +94,8 @@
 
         @media (max-width: 480px) {
           .meaning-cluster-grid { grid-template-columns: 1fr; }
+          .meaning-cluster { padding: 14px 14px 10px; margin-bottom: 16px; }
           .meaning-cluster-title { font-size: 18px; }
-          .meaning-theme-section { padding: 16px; margin-bottom: 20px; }
         }
 
         @media (max-width: 700px) {
@@ -216,7 +222,6 @@
         var meaningCards = [];
         var meaningItemRegisters = [];
         var meaningOrder = [];
-        var meaningThemeSections = [];
         data.nodes.forEach(function (n) { nodeMap[n.id] = n; if (!cats[n.category]) cats[n.category] = []; cats[n.category].push(n); });
         data.edges.forEach(function (e) {
           if (!adj[e.source]) adj[e.source] = []; if (!adj[e.target]) adj[e.target] = [];
@@ -289,11 +294,7 @@
             if (indexMode) {
               indexRows.forEach(function (r) { r.el.style.display = ''; });
             } else if (meaningsMode) {
-              // Restore theme order first (themes went last/first during search), then
-              // append each cluster to its current parent so the registration order
-              // comes back without ripping clusters out of theme bodies.
-              meaningThemeSections.forEach(function (t) { meaningContainer.appendChild(t); t.classList.remove('is-hidden'); });
-              cards.forEach(function (c) { if (c.parentNode) c.parentNode.appendChild(c); c.classList.remove('is-hidden'); });
+              meaningOrder.forEach(function (c) { meaningContainer.appendChild(c); c.classList.remove('is-hidden'); });
               meaningItemRegisters.forEach(function (x) { x.el.classList.remove('is-highlighted', 'is-muted'); });
               restoreItemOrder(meaningItemRegisters);
             } else {
@@ -326,29 +327,18 @@
               else { x.el.classList.add('is-muted'); x.el.classList.remove('is-highlighted'); }
             });
 
-            // Sort clusters within each theme body (matched to top of parent body)
+            // Sort clusters (matched to top of meaningContainer), hide unmatched
             var matchedClusters = [], unmatchedClusters = [];
             cards.forEach(function (cluster) {
               var hasMatch = false;
               items.forEach(function (x) { if (x.card === cluster && x.text.indexOf(q) !== -1) hasMatch = true; });
               if (hasMatch) matchedClusters.push(cluster); else unmatchedClusters.push(cluster);
             });
-            matchedClusters.forEach(function (c) { if (c.parentNode) c.parentNode.appendChild(c); c.classList.remove('is-hidden'); });
-            unmatchedClusters.forEach(function (c) { if (c.parentNode) c.parentNode.appendChild(c); c.classList.add('is-hidden'); });
-
-            // Sort themes within meaningContainer (matched themes float up)
-            var matchedThemes = [], unmatchedThemes = [];
-            meaningThemeSections.forEach(function (tSec) {
-              var hasMatchInTheme = false;
-              items.forEach(function (x) { if (x.theme === tSec && x.text.indexOf(q) !== -1) hasMatchInTheme = true; });
-              if (hasMatchInTheme) matchedThemes.push(tSec); else unmatchedThemes.push(tSec);
-            });
-            matchedThemes.forEach(function (t) { meaningContainer.appendChild(t); t.classList.remove('is-hidden'); });
-            unmatchedThemes.forEach(function (t) { meaningContainer.appendChild(t); t.classList.add('is-hidden'); });
+            matchedClusters.forEach(function (c) { meaningContainer.appendChild(c); c.classList.remove('is-hidden'); });
+            unmatchedClusters.forEach(function (c) { meaningContainer.appendChild(c); c.classList.add('is-hidden'); });
 
             // Within matched clusters, reorder pills (matched to top)
             matchedClusters.forEach(function (cluster) {
-              if (cluster.classList.contains('is-hidden')) return;
               var grid = cluster.querySelector('.meaning-cluster-grid');
               if (!grid) return;
               var itemEls = [].slice.call(grid.querySelectorAll('.meaning-pill'));
@@ -456,97 +446,61 @@
           (ungroupedCount > 0 ? ' · ' + ungroupedCount + ' standalone word' + (ungroupedCount === 1 ? '' : 's') + ' available in Categories view' : '');
         meaningContainer.appendChild(sub);
 
-        // Group clusters by their dominant theme. Each theme becomes a labeled
-        // super-section that visually organizes its child clusters.
-        var superThemes = {};
+        // Each cluster is rendered as its own visually distinct card with a themed
+        // accent spine. Same-theme clusters share the accent color; the spacing
+        // between cards makes each cluster feel like its own unit.
         meaningGroups.forEach(function (group) {
           var catCount = {};
           group.words.forEach(function (w) { catCount[w.category] = (catCount[w.category] || 0) + 1; });
-          // Tie-break in favor of the anchor word's own category so the cluster's
-          // semantic home matches its named entry point.
           var mainCat = group.anchor.category;
           var mainCount = catCount[mainCat] || 0;
           Object.keys(catCount).forEach(function (ck) {
             if (catCount[ck] > mainCount) { mainCat = ck; mainCount = catCount[ck]; }
           });
-          if (!superThemes[mainCat]) superThemes[mainCat] = { id: mainCat, clusters: [], totalWords: 0 };
-          superThemes[mainCat].clusters.push(group);
-          superThemes[mainCat].totalWords += group.words.length;
-        });
+          var themeColor = catColorMap[mainCat] || '#a570ff';
 
-        // Sort themes by total words desc (densest themes surface first for studying),
-        // break ties alphabetically so order is stable.
-        var themeArray = Object.keys(superThemes).map(function (k) { return superThemes[k]; });
-        themeArray.sort(function (a, b) {
-          if (b.totalWords !== a.totalWords) return b.totalWords - a.totalWords;
-          return a.id.localeCompare(b.id);
-        });
+          var section = document.createElement('section');
+          section.className = 'meaning-cluster';
+          section.style.borderLeftColor = themeColor;
 
-        themeArray.forEach(function (theme) {
-          var themeColor = catColorMap[theme.id] || '#a570ff';
-          var themeTitle = theme.id.charAt(0).toUpperCase() + theme.id.slice(1);
+          var head = document.createElement('div');
+          head.className = 'meaning-cluster-head';
+          head.innerHTML =
+            '<span class="meaning-cluster-title" style="color:' + themeColor + '">' + group.anchor.label + '</span>' +
+            '<span class="meaning-cluster-count">& similar &middot; ' + group.words.length + ' word' + (group.words.length === 1 ? '' : 's') + '</span>';
+          section.appendChild(head);
 
-          var tSec = document.createElement('section');
-          tSec.className = 'meaning-theme-section';
-          tSec.id = 'meaning-theme-' + theme.id; // allow deep-link anchors
-          tSec.innerHTML =
-            '<h3 class="meaning-theme-title" style="color:' + themeColor + '">' + themeTitle + '</h3>' +
-            '<div class="meaning-theme-sub">' + theme.clusters.length + ' cluster' + (theme.clusters.length === 1 ? '' : 's') +
-            ' &middot; ' + theme.totalWords + ' word' + (theme.totalWords === 1 ? '' : 's') + '</div>';
+          var gridEl = document.createElement('div');
+          gridEl.className = 'meaning-cluster-grid';
 
-          // Sort clusters within theme: size desc, then anchor label asc for stability.
-          var sortedClusters = theme.clusters.slice().sort(function (a, b) {
-            if (b.words.length !== a.words.length) return b.words.length - a.words.length;
-            return a.anchor.label.localeCompare(b.anchor.label);
-          });
+          group.words.forEach(function (node) {
+            var isAnchor = (node.id === group.anchor.id);
+            var pill = document.createElement('div');
+            pill.className = 'meaning-pill' + (isAnchor ? ' is-anchor' : '');
+            if (isAnchor) pill.style.borderColor = themeColor;
+            var tagHtml = isAnchor ? '<span class="meaning-pill-tag" style="background:' + themeColor + '">anchor</span>' : '';
+            var emojiHtml = node.emoji ? '<span class="meaning-pill-emoji">' + node.emoji + '</span>' : '';
+            pill.innerHTML =
+              '<div class="meaning-pill-main">' +
+                emojiHtml +
+                '<span class="meaning-pill-label">' + node.label + '</span>' +
+                tagHtml +
+              '</div>' +
+              '<div class="meaning-pill-desc">' + (node.description || '') + '</div>';
+            gridEl.appendChild(pill);
 
-          sortedClusters.forEach(function (group) {
-            var section = document.createElement('section');
-            section.className = 'meaning-cluster';
-
-            var head = document.createElement('div');
-            head.className = 'meaning-cluster-head';
-            head.innerHTML =
-              '<span class="meaning-cluster-title" style="color:' + themeColor + '">' + group.anchor.label + '</span>' +
-              '<span class="meaning-cluster-count">& similar &middot; ' + group.words.length + ' word' + (group.words.length === 1 ? '' : 's') + '</span>';
-            section.appendChild(head);
-
-            var gridEl = document.createElement('div');
-            gridEl.className = 'meaning-cluster-grid';
-
-            group.words.forEach(function (node) {
-              var isAnchor = (node.id === group.anchor.id);
-              var pill = document.createElement('div');
-              pill.className = 'meaning-pill' + (isAnchor ? ' is-anchor' : '');
-              if (isAnchor) pill.style.borderColor = themeColor;
-              var tagHtml = isAnchor ? '<span class="meaning-pill-tag" style="background:' + themeColor + '">anchor</span>' : '';
-              var emojiHtml = node.emoji ? '<span class="meaning-pill-emoji">' + node.emoji + '</span>' : '';
-              pill.innerHTML =
-                '<div class="meaning-pill-main">' +
-                  emojiHtml +
-                  '<span class="meaning-pill-label">' + node.label + '</span>' +
-                  tagHtml +
-                '</div>' +
-                '<div class="meaning-pill-desc">' + (node.description || '') + '</div>';
-              gridEl.appendChild(pill);
-              var conns = adj[node.id] || [];
-              var labels = conns.map(function (id) { var nn = nodeMap[id]; return nn ? nn.label : ''; }).filter(Boolean);
-              meaningItemRegisters.push({
-                el: pill,
-                card: section,
-                theme: tSec,
-                text: (node.label + ' ' + (node.description || '') + ' ' + labels.join(' ')).toLowerCase()
-              });
+            var conns = adj[node.id] || [];
+            var labels = conns.map(function (id) { var nn = nodeMap[id]; return nn ? nn.label : ''; }).filter(Boolean);
+            meaningItemRegisters.push({
+              el: pill,
+              card: section,
+              text: (node.label + ' ' + (node.description || '') + ' ' + labels.join(' ')).toLowerCase()
             });
-            section.appendChild(gridEl);
-            tSec.appendChild(section);
-
-            meaningCards.push(section);
-            meaningOrder.push(section);
           });
-
-          meaningContainer.appendChild(tSec);
-          meaningThemeSections.push(tSec);
+          section.appendChild(gridEl);
+          meaningContainer.appendChild(section);
+          meaningCards.push(section);
+          meaningOrder.push(section);
         });
 
         /* ── Index mode ── */
