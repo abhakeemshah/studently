@@ -2,7 +2,7 @@
  *
  * Design tokens in the :root block below are the source-of-truth for this app.
  * Do NOT @import from /design/variables.css here: that file declares
- * --font-feather: 'feather' and --font-din-round: 'din-round' (placeholder
+ * --font-feather: 'feather' and --font-din-round: 'din-round' (pseudo
  * names), but the actual Google Fonts <link> in index.html loads Fredoka and
  * Nunito Sans. Importing would silently regress the typography to system-ui
  * fallbacks because the cascade would pick the @imported values last.
