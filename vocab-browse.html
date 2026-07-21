@@ -70,16 +70,16 @@
         .meaning-pill-tag { display: inline-block; padding: 2px 7px; border-radius: 999px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: white; flex-shrink: 0; }
         .meaning-pill-desc { font-size: 13px; color: var(--color-graphite); line-height: 1.4; margin-top: 6px; opacity: 0.85; }
         /* Each cluster is its own visually distinct card with a themed accent spine. */
-        .meaning-cluster { position: relative; margin: 0 0 22px; padding: 18px 20px 14px; border: 1.5px solid var(--color-cloud-gray); border-left: 6px solid; border-radius: 12px; background: var(--color-snow-white); box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: box-shadow 0.15s ease, transform 0.15s ease; }
-        .meaning-cluster:hover { box-shadow: 0 6px 18px rgba(0,0,0,0.10); transform: translateY(-1px); }
+        .meaning-cluster { position: relative; margin: 0 0 48px; padding: 22px 22px 18px; border: 3px solid; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .meaning-cluster:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06); }
         .meaning-cluster:last-child { margin-bottom: 0; }
         .meaning-cluster.is-hidden { display: none; }
-        .meaning-cluster-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px dashed var(--color-cloud-gray); }
-        .meaning-cluster-title { font-family: var(--font-feather); font-weight: 700; font-size: 22px; letter-spacing: -0.01em; color: var(--color-almost-black); }
-        .meaning-cluster-count { font-size: 13px; font-weight: 700; color: var(--color-graphite); opacity: 0.7; text-transform: uppercase; letter-spacing: 0.05em; }
-        .meaning-cluster-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
-        [data-theme="dark"] .meaning-cluster { background: #1e293b; border-color: #334155; }
-        [data-theme="dark"] .meaning-cluster-head { border-color: #475569; }
+        .meaning-cluster-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 18px; padding-bottom: 10px; border-bottom: 2px dashed rgba(0,0,0,0.15); }
+        .meaning-cluster-title { font-family: var(--font-feather); font-weight: 700; font-size: 24px; letter-spacing: -0.01em; color: var(--color-almost-black); }
+        .meaning-cluster-count { font-size: 13px; font-weight: 800; color: var(--color-graphite); opacity: 0.75; text-transform: uppercase; letter-spacing: 0.05em; }
+        .meaning-cluster-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+        [data-theme="dark"] .meaning-cluster { box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.2); }
+        [data-theme="dark"] .meaning-cluster-head { border-bottom-color: rgba(255,255,255,0.15); }
         [data-theme="dark"] .meaning-cluster-title { color: var(--text-main); }
         [data-theme="dark"] .meaning-cluster-count { color: var(--color-silver); }
         [data-theme="dark"] .meaning-pill:hover { border-color: #475569; }
@@ -461,7 +461,19 @@
 
           var section = document.createElement('section');
           section.className = 'meaning-cluster';
-          section.style.borderLeftColor = themeColor;
+          // Each cluster gets a fully themed border and a subtle tinted background
+          // tinted from its theme color, so clusters feel like distinct islands
+          // rather than a continuous list.
+          section.style.borderColor = themeColor;
+          var hex = themeColor.replace('#', '');
+          if (hex.length === 6) {
+            var rr = parseInt(hex.substring(0, 2), 16);
+            var gg = parseInt(hex.substring(2, 4), 16);
+            var bb = parseInt(hex.substring(4, 6), 16);
+            section.style.backgroundColor = 'rgba(' + rr + ',' + gg + ',' + bb + ', 0.07)';
+          } else {
+            section.style.backgroundColor = 'var(--color-snow-white)';
+          }
 
           var head = document.createElement('div');
           head.className = 'meaning-cluster-head';
