@@ -388,53 +388,60 @@
           if (degreeMap[e.target] != null) degreeMap[e.target] += e.weight;
         });
 
-        // Union-Find with weight threshold 1.5 (thinker's recommended cutoff)
-        var parent = {};
-        data.nodes.forEach(function (n) { parent[n.id] = n.id; });
-        function dsuFind(x) {
-          while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; }
-          return x;
-        }
-        function dsuUnion(a, b) {
-          var ra = dsuFind(a), rb = dsuFind(b);
-          if (ra !== rb) parent[ra] = rb;
-        }
+        // 1-hop greedy star clustering: replaces DSU to prevent transitive chaining.
+        // Each cluster is anchored on the highest-degree unclaimed node and contains
+        // only its DIRECT same-theme neighbors at weight >= 1.5. This guarantees
+        // every word in a cluster is genuinely related to the cluster's anchor,
+        // so "AMBIGUOUS & similar" really does contain words that come under
+        // ambiguity, not chain-pulled words from 4 hops away.
+        var edgeWeightMap = {};
         data.edges.forEach(function (e) {
-          // Require both strong weight AND same category so clusters stay theme-coherent.
-          // Cross-theme 1.5+ bridges no longer chain together, which means clusters are
-          // visually distinct (single accent color) and each header's anchor word matches
-          // the words inside it.
-          var sNode = nodeMap[e.source], tNode = nodeMap[e.target];
-          if (e.weight >= 1.5 && sNode && tNode && sNode.category === tNode.category) {
-            dsuUnion(e.source, e.target);
-          }
-        });
-        var rawGroups = {};
-        data.nodes.forEach(function (n) {
-          var r = dsuFind(n.id);
-          if (!rawGroups[r]) rawGroups[r] = [];
-          rawGroups[r].push(n);
+          edgeWeightMap[e.source + '|' + e.target] = e.weight;
+          edgeWeightMap[e.target + '|' + e.source] = e.weight;
         });
 
-        // Filter out singletons; sort groups by size desc, then by anchor label
-        var meaningGroups = Object.keys(rawGroups).map(function (k) {
-          var g = rawGroups[k];
-          var anchor = g[0];
-          for (var i = 1; i < g.length; i++) {
-            if (degreeMap[g[i].id] > degreeMap[anchor.id]) anchor = g[i];
+        var used = {};
+        var meaningGroups = [];
+
+        var sortedNodes = data.nodes.slice().sort(function (a, b) {
+          return degreeMap[b.id] - degreeMap[a.id];
+        });
+
+        sortedNodes.forEach(function (anchor) {
+          if (used[anchor.id]) return;
+
+          var group = [anchor];
+          var conns = adj[anchor.id] || [];
+
+          conns.forEach(function (cid) {
+            if (used[cid]) return;
+            var w = edgeWeightMap[anchor.id + '|' + cid];
+            var neighbor = nodeMap[cid];
+            if (w >= 1.5 && neighbor && neighbor.category === anchor.category) {
+              group.push(neighbor);
+              used[cid] = true;
+            }
+          });
+
+          if (group.length >= 2) {
+            used[anchor.id] = true;
+            group.sort(function (a, b) {
+              var dd = degreeMap[b.id] - degreeMap[a.id];
+              return dd !== 0 ? dd : a.label.localeCompare(b.label);
+            });
+            meaningGroups.push({ root: anchor.id, anchor: anchor, words: group });
+          } else {
+            // Solo anchor: leave avail so a lower-degree node later might claim it,
+            // but if not, it counts toward the standalone total via the ungroupedCount
+            // math further down.
+            used[anchor.id] = false;
           }
-          // Sort words by degree desc, then label asc as tiebreaker
-          g.sort(function (a, b) {
-            var dd = degreeMap[b.id] - degreeMap[a.id];
-            if (dd !== 0) return dd;
-            return a.label.localeCompare(b.label);
-          });
-          return { root: k, anchor: anchor, words: g };
-        }).filter(function (g) { return g.words.length >= 2; })
-          .sort(function (a, b) {
-            if (b.words.length !== a.words.length) return b.words.length - a.words.length;
-            return a.anchor.label.localeCompare(b.anchor.label);
-          });
+        });
+
+        meaningGroups.sort(function (a, b) {
+          if (b.words.length !== a.words.length) return b.words.length - a.words.length;
+          return a.anchor.label.localeCompare(b.anchor.label);
+        });
 
         // Pre-compute each node's strongest partner (highest-weight edge endpoint)
         // so every label below can pair with a real semantic neighbor instead of
