@@ -152,6 +152,31 @@
 
         @media (max-width: 700px) { .browse-section { padding: 24px 16px 48px; } .browse-card-title { font-size: 15px; } }
         @media (max-width: 480px) { .browse-actions { flex-direction: column; align-items: stretch; } .browse-btn { justify-content: center; } }
+
+        /* ── By Meaning: examples / context / synonyms / contrast row ── */
+        .meaning-pill-context { display: inline-block; margin-top: 6px; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; background: var(--color-snow-white); border: 1px solid var(--color-cloud-gray); color: var(--color-graphite); }
+        [data-theme="dark"] .meaning-pill-context { background: #0f172a; border-color: #334155; color: var(--color-silver); }
+        .meaning-pill-examples { margin-top: 8px; padding: 8px 10px; border-left: 3px solid; border-radius: 0 6px 6px 0; background: rgba(0,0,0,0.035); font-size: 12px; line-height: 1.45; color: var(--color-graphite); font-style: italic; }
+        [data-theme="dark"] .meaning-pill-examples { background: rgba(255,255,255,0.04); color: var(--color-silver); }
+        .meaning-pill-examples div + div { margin-top: 4px; }
+        .meaning-pill-examples .ex-quote { display: inline; }
+        .meaning-pill-examples .ex-quote::before { content: '\u201c'; opacity: 0.5; }
+        .meaning-pill-examples .ex-quote::after { content: '\u201d'; opacity: 0.5; }
+        .meaning-cluster-extras { margin-top: 14px; padding-top: 12px; border-top: 2px dashed rgba(0,0,0,0.10); display: flex; flex-direction: column; gap: 10px; }
+        [data-theme="dark"] .meaning-cluster-extras { border-top-color: rgba(255,255,255,0.12); }
+        .meaning-extras-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .meaning-extras-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--color-silver); margin-right: 4px; }
+        .meaning-syn-pill { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; background: var(--color-snow-white); border: 1px solid var(--color-cloud-gray); color: var(--color-graphite); }
+        [data-theme="dark"] .meaning-syn-pill { background: #1e293b; border-color: #334155; color: var(--color-silver); }
+        .meaning-contrast-pair { display: inline-flex; align-items: center; gap: 6px; padding: 4px 4px 4px 10px; border-radius: 999px; border: 1px dashed var(--color-bubblegum-pink, #cc348d); background: rgba(204, 52, 141, 0.06); font-size: 12px; font-weight: 700; color: var(--color-graphite); }
+        [data-theme="dark"] .meaning-contrast-pair { background: rgba(204, 52, 141, 0.10); color: var(--color-silver); }
+        .meaning-contrast-vs { font-family: var(--font-feather); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.10em; color: var(--color-bubblegum-pink, #cc348d); opacity: 0.85; padding: 0 4px; }
+        .meaning-contrast-pair-word { font-weight: 700; }
+        @media (max-width: 480px) {
+          .meaning-extras-row { gap: 6px; }
+          .meaning-contrast-pair { font-size: 11px; padding: 3px 3px 3px 8px; }
+          .meaning-pill-examples { font-size: 11px; padding: 6px 8px; }
+        }
     </style>
 </head>
 <body data-theme="light">
@@ -519,6 +544,14 @@
             var partnerId = bestPartnerMap[node.id];
             var partner = partnerId ? nodeMap[partnerId] : null;
             var pairHtml = partner ? '<span class="meaning-pill-pair">&middot; ' + partner.label + '</span>' : '';
+            var contextHtml = node.context ? '<span class="meaning-pill-context">' + node.context + '</span>' : '';
+            var examplesHtml = '';
+            if (node.examples && node.examples.length) {
+              var exRows = node.examples.slice(0, 2).map(function (s) {
+                return '<div><span class="ex-quote">' + s + '</span></div>';
+              }).join('');
+              examplesHtml = '<div class="meaning-pill-examples" style="border-left-color:' + themeColor + '">' + exRows + '</div>';
+            }
             pill.innerHTML =
               '<div class="meaning-pill-main">' +
                 emojiHtml +
@@ -526,12 +559,29 @@
                 tagHtml +
               '</div>' +
               (pairHtml ? '<div class="meaning-pill-pair-row">' + pairHtml + '</div>' : '') +
-              '<div class="meaning-pill-desc">' + (node.description || '') + '</div>';
+              '<div class="meaning-pill-desc">' + (node.description || '') + '</div>' +
+              contextHtml +
+              examplesHtml;
             gridEl.appendChild(pill);
 
+            // Search text covers label, description, context, examples, synonyms,
+            // contrast words, partner label, and connected-node labels so any
+            // meaningful field on the node (or its closest neighbour) can match.
             var conns = adj[node.id] || [];
             var labels = conns.map(function (id) { var nn = nodeMap[id]; return nn ? nn.label : ''; }).filter(Boolean);
-            var searchText = (node.label + ' ' + (node.description || '') + ' ' + (partner ? partner.label : '') + ' ' + labels.join(' ')).toLowerCase();
+            var synText = (node.synonyms || []).join(' ');
+            var ctrText = (node.contrast || []).map(function (c) { return c.word; }).join(' ');
+            var exText = (node.examples || []).join(' ');
+            var searchText = (
+              node.label + ' ' +
+              (node.description || '') + ' ' +
+              (node.context || '') + ' ' +
+              exText + ' ' +
+              synText + ' ' +
+              ctrText + ' ' +
+              (partner ? partner.label : '') + ' ' +
+              labels.join(' ')
+            ).toLowerCase();
             meaningItemRegisters.push({
               el: pill,
               card: section,
@@ -540,6 +590,39 @@
           });
 
           section.appendChild(gridEl);
+
+          // Cluster-level extras: synonyms and contrast pairs, anchored on the
+          // cluster's main word. Only renders when the anchor carries data.
+          var anchorNode = group.anchor;
+          var synList = anchorNode.synonyms || [];
+          var ctrList = anchorNode.contrast || [];
+          if (synList.length || ctrList.length) {
+            var extras = document.createElement('div');
+            extras.className = 'meaning-cluster-extras';
+            if (synList.length) {
+              var synRow = document.createElement('div');
+              synRow.className = 'meaning-extras-row';
+              synRow.innerHTML = '<span class="meaning-extras-label">Synonyms</span>' +
+                synList.map(function (s) { return '<span class="meaning-syn-pill">' + s + '</span>'; }).join('');
+              extras.appendChild(synRow);
+            }
+            if (ctrList.length) {
+              var ctrRow = document.createElement('div');
+              ctrRow.className = 'meaning-extras-row';
+              ctrRow.innerHTML = '<span class="meaning-extras-label">Other way</span>' +
+                ctrList.map(function (c) {
+                  return '<span class="meaning-contrast-pair">' +
+                    '<span class="meaning-contrast-pair-word">' + anchorNode.label + '</span>' +
+                    '<span class="meaning-contrast-vs">vs</span>' +
+                    '<span class="meaning-contrast-pair-word">' + c.word + '</span>' +
+                    (c.rel ? '<span style="opacity:0.6;font-weight:600;"> &middot; ' + c.rel + '</span>' : '') +
+                  '</span>';
+                }).join('');
+              extras.appendChild(ctrRow);
+            }
+            section.appendChild(extras);
+          }
+
           meaningContainer.appendChild(section);
           meaningCards.push(section);
           meaningOrder.push(section);
