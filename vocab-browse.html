@@ -70,6 +70,7 @@
         .meaning-pill-tag { display: inline-block; padding: 2px 7px; border-radius: 999px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: white; flex-shrink: 0; }
         .meaning-pill-desc { font-size: 13px; color: var(--color-graphite); line-height: 1.4; margin-top: 6px; opacity: 0.85; }
 
+        [data-theme="dark"] .meaning-pill:hover { border-color: #475569; }
         [data-theme="dark"] .meaning-cluster-head { border-color: #334155; }
         [data-theme="dark"] .meaning-cluster-title,
         [data-theme="dark"] .meaning-pill-label { color: var(--text-main); }
@@ -281,6 +282,7 @@
               indexRows.forEach(function (r) { r.el.style.display = ''; });
             } else if (meaningsMode) {
               meaningOrder.forEach(function (c) { meaningContainer.appendChild(c); c.classList.remove('is-hidden'); });
+              meaningItemRegisters.forEach(function (x) { x.el.classList.remove('is-highlighted', 'is-muted'); });
               restoreItemOrder(meaningItemRegisters);
             } else {
               cardOrder.forEach(function (c) { grid.appendChild(c); });
@@ -324,7 +326,7 @@
             matchedCards.forEach(function (card) {
               var body = card.querySelector('.browse-card-body, .meaning-cluster-grid');
               if (!body) return;
-              var sel = meaningsMode ? '.browse-meaning-item' : '.browse-item';
+              var sel = meaningsMode ? '.meaning-pill' : '.browse-item';
               var itemEls = [].slice.call(body.querySelectorAll(sel));
               var matchedInCard = [], unmatchedInCard = [];
               itemEls.forEach(function (el) {
