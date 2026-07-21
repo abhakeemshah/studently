@@ -74,6 +74,9 @@
         .meaning-cluster-title { font-family: var(--font-feather); font-weight: 700; font-size: 24px; letter-spacing: -0.01em; color: var(--color-almost-black); }
         .meaning-cluster-count { font-size: 13px; font-weight: 800; color: var(--color-graphite); opacity: 0.75; text-transform: uppercase; letter-spacing: 0.05em; }
         .meaning-cluster-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+        .meaning-theme-section { margin: 28px 0 14px; padding: 0 0 0 14px; border-left: 4px solid; }
+        .meaning-theme-title { font-family: var(--font-feather); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.85; }
+        [data-theme="dark"] .meaning-theme-title { opacity: 0.95; }
         [data-theme="dark"] .meaning-cluster { box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.2); }
         [data-theme="dark"] .meaning-cluster-head { border-bottom-color: rgba(255,255,255,0.15); }
         [data-theme="dark"] .meaning-cluster-title { color: var(--text-main); }
@@ -429,7 +432,11 @@
           return { root: k, anchor: anchor, words: g, isSingleton: g.length === 1 };
         });
         // Pairs/triplets first (anchored meaning), then singles alphabetically.
+        // Sort: by theme category first so cards of the same color cluster
+        // visually on the page. Within each theme: pairs/triplets first by size
+        // desc, then singletons alphabetically.
         meaningGroups.sort(function (a, b) {
+          if (a.anchor.category !== b.anchor.category) return a.anchor.category.localeCompare(b.anchor.category);
           if (a.isSingleton !== b.isSingleton) return a.isSingleton ? 1 : -1;
           if (b.words.length !== a.words.length) return b.words.length - a.words.length;
           return a.anchor.label.localeCompare(b.anchor.label);
@@ -453,8 +460,22 @@
           ' &middot; ' + singletonCount + ' standalone word' + (singletonCount === 1 ? '' : 's');
         meaningContainer.appendChild(sub);
 
-        // Render each cluster as its own distinct card.
+        // Render each cluster as its own distinct card. Inject a small theme
+        // divider above each new-category run so cards of the same color group
+        // visually on the page.
+        var lastCategory = '';
         meaningGroups.forEach(function (group) {
+          if (group.anchor.category !== lastCategory) {
+            var themeHeaderColor = catColorMap[group.anchor.category] || '#a570ff';
+            var themeName = group.anchor.category.charAt(0).toUpperCase() + group.anchor.category.slice(1);
+            var themeSection = document.createElement('div');
+            themeSection.className = 'meaning-theme-section';
+            themeSection.setAttribute('data-theme-cat', group.anchor.category);
+            themeSection.style.borderLeftColor = themeHeaderColor;
+            themeSection.innerHTML = '<div class="meaning-theme-title" style="color:' + themeHeaderColor + '">' + themeName + '</div>';
+            meaningContainer.appendChild(themeSection);
+            lastCategory = group.anchor.category;
+          }
           var themeColor = catColorMap[group.anchor.category] || '#a570ff';
 
           var section = document.createElement('section');
