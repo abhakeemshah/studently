@@ -113,7 +113,7 @@ function updateUI(isNavigating = false) {
     // higher-traffic entry point (fires on shuffle too) so the
     // explicit loop here is the right hook.
     //
-    // Three concurrent fetches per navigation is well within the
+    // Three parallel fetches per navigation is well within the
     // global browser connection cap (Chromium: 6 per origin; we
     // share with JS/CSS/font round-trips). On warm cards the
     // prefetchWikiImage cache-hit short-circuit + _preloadedImageUrls
