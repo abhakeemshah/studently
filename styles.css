@@ -303,7 +303,7 @@ h1 {
     color: var(--shadow-primary);
 }
 
-/* --- 5. Bottom Controls (Anchored) --- */
+/* --- 5. Footer Controls (Anchored) --- */
 .controls {
     display: flex;
     justify-content: space-between;
