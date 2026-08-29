@@ -159,9 +159,8 @@
         .meaning-pill-examples { margin-top: 8px; padding: 8px 10px; border-left: 3px solid; border-radius: 0 6px 6px 0; background: rgba(0,0,0,0.035); font-size: 12px; line-height: 1.45; color: var(--color-graphite); font-style: italic; }
         [data-theme="dark"] .meaning-pill-examples { background: rgba(255,255,255,0.04); color: var(--color-silver); }
         .meaning-pill-examples div + div { margin-top: 4px; }
-        .meaning-pill-examples .ex-quote { display: inline; }
-        .meaning-pill-examples .ex-quote::before { content: '\u201c'; opacity: 0.5; }
-        .meaning-pill-examples .ex-quote::after { content: '\u201d'; opacity: 0.5; }
+        .meaning-pill-examples .ex-quote { display: inline; }.meaning-pill-examples .ex-quote::before { content: '"'; opacity: 0.4; }
+.meaning-pill-examples .ex-quote::after  { content: '"'; opacity: 0.4; }
         .meaning-cluster-extras { margin-top: 14px; padding-top: 12px; border-top: 2px dashed rgba(0,0,0,0.10); display: flex; flex-direction: column; gap: 10px; }
         [data-theme="dark"] .meaning-cluster-extras { border-top-color: rgba(255,255,255,0.12); }
         .meaning-extras-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }

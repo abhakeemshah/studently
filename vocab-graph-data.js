@@ -1033,8 +1033,27 @@ const vocabGraphData = (function () {
   // user-facing strings at data-load time. Any current data is already
   // clean ASCII, but this guards against future copy-paste / auto-format
   // regressions across contributors.
+  // Defense in depth: also strip any literal 5-char ASCII u-XXXX text
+  // (e.g. "u201c", "u201d", "u2014") that may slip into data through
+  // copy-paste from DevTools codepoint views, JSON downgrades, or any
+  // future contributor who isn't aware. Anchored on the leading \b so we
+  // never touch unrelated tokens that happen to contain those chars.
+  var ASCII_LITERAL_MAP = {
+    'u201c': '"', 'u201d': '"',
+    'u2018': "'", 'u2019': "'",
+    'u2013': '-', 'u2014': '--',
+    'u2026': '...', 'u00a0': ' ', 'u00b7': '-'
+  };
+  function stripLiteralCodepoints(s) {
+    return s.replace(
+      /\bu(201[cd8934]|2026|00a0|00b7)/gi,
+      function (m) { return ASCII_LITERAL_MAP[m.toLowerCase()] || m; }
+    );
+  }
+
   function normalizeText(str) {
     if (typeof str !== 'string') return str;
+    str = stripLiteralCodepoints(str);
     return str
       .replace(/[\u201C\u201D]/g, '"')
       .replace(/[\u2018\u2019]/g, "'")
