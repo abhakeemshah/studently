@@ -396,6 +396,196 @@
             .feature-grid { grid-template-columns: 1fr; }
         }
 
+        /* ── Pak Flashcard Section ── */
+        .pak-fc-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 40px;
+        }
+
+        .pak-fc-tab {
+            padding: 10px 24px;
+            border-radius: var(--radius-buttons);
+            border: 1px solid var(--color-hairline);
+            background: transparent;
+            color: var(--color-primary-ink);
+            font-family: var(--font-main);
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+        }
+
+        .pak-fc-tab:hover {
+            background: var(--color-cool-wash);
+        }
+
+        .pak-fc-tab.active {
+            background: var(--color-primary-ink);
+            color: var(--color-paper);
+            border-color: var(--color-primary-ink);
+        }
+
+        .pak-fc-controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+
+        .pak-fc-ctrl {
+            padding: 8px 20px;
+            border-radius: var(--radius-buttons);
+            border: 1px solid var(--color-hairline);
+            background: transparent;
+            color: var(--color-mid-gray);
+            font-family: var(--font-main);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .pak-fc-ctrl:hover {
+            background: var(--color-cool-wash);
+            color: var(--color-primary-ink);
+        }
+
+        .pak-fc-ctrl.active-ctrl {
+            background: var(--color-electric-blue);
+            color: var(--color-paper);
+            border-color: var(--color-electric-blue);
+        }
+
+        .pak-fc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .pak-fc-card-wrapper {
+            perspective: 1000px;
+            height: 220px;
+        }
+
+        .pak-fc-card {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .pak-fc-card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .pak-fc-face {
+            position: absolute;
+            inset: 0;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: var(--radius-cards);
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .pak-fc-front {
+            background: var(--color-paper);
+            border: 1px solid var(--color-hairline);
+        }
+
+        .pak-fc-back {
+            background: var(--color-canvas);
+            border: 1px solid var(--color-hairline);
+            transform: rotateY(180deg);
+            justify-content: flex-start;
+            align-items: flex-start;
+            text-align: left;
+            overflow-y: auto;
+        }
+
+        .pak-fc-back::-webkit-scrollbar { width: 4px; }
+        .pak-fc-back::-webkit-scrollbar-thumb { background: var(--color-hairline); border-radius: 4px; }
+
+        .pak-fc-era {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--color-mid-gray);
+            margin-bottom: 8px;
+        }
+
+        .pak-fc-front .pak-fc-year {
+            font-size: clamp(40px, 6vw, 56px);
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -1.2px;
+            color: var(--color-primary-ink);
+            margin: 0 0 12px;
+        }
+
+        .pak-fc-front .pak-fc-name {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--color-mid-gray);
+            margin: 0;
+        }
+
+        .pak-fc-back .pak-fc-back-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--color-primary-ink);
+            margin: 0 0 12px;
+            line-height: 1.2;
+        }
+
+        .pak-fc-back .pak-fc-back-year {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-electric-blue);
+            margin-bottom: 8px;
+        }
+
+        .pak-fc-back .pak-fc-row {
+            font-size: 13px;
+            color: var(--color-mid-gray);
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+
+        .pak-fc-back .pak-fc-row strong {
+            color: var(--color-primary-ink);
+            font-weight: 600;
+        }
+
+        .pak-fc-back .pak-fc-desc {
+            font-size: 12px;
+            color: var(--color-mid-gray);
+            line-height: 1.5;
+            margin-top: 8px;
+            border-top: 1px solid var(--color-hairline);
+            padding-top: 8px;
+        }
+
+        .pak-fc-hint {
+            font-size: 11px;
+            color: var(--color-hairline);
+            margin-top: 12px;
+        }
+
+        @media (max-width: 640px) {
+            .pak-fc-grid { grid-template-columns: 1fr; }
+            .pak-fc-card-wrapper { height: 200px; }
+        }
+
         /* ── Dark Mode ── */
         [data-theme="dark"] {
             --color-primary-ink: #f8fafc;
@@ -423,6 +613,37 @@
 
         [data-theme="dark"] .feature-card {
             background: var(--color-paper);
+        }
+
+        [data-theme="dark"] .pak-fc-tab {
+            border-color: var(--color-hairline);
+            color: var(--color-primary-ink);
+        }
+
+        [data-theme="dark"] .pak-fc-tab.active {
+            background: var(--color-primary-ink);
+            color: var(--color-canvas);
+            border-color: var(--color-primary-ink);
+        }
+
+        [data-theme="dark"] .pak-fc-ctrl {
+            border-color: var(--color-hairline);
+            color: var(--color-mid-gray);
+        }
+
+        [data-theme="dark"] .pak-fc-ctrl:hover {
+            background: var(--color-cool-wash);
+            color: var(--color-primary-ink);
+        }
+
+        [data-theme="dark"] .pak-fc-front {
+            background: var(--color-paper);
+            border-color: var(--color-hairline);
+        }
+
+        [data-theme="dark"] .pak-fc-back {
+            background: var(--color-canvas);
+            border-color: var(--color-hairline);
         }
     </style>
 </head>
@@ -544,6 +765,34 @@
             </div>
         </section>
 
+        <!-- ── Pak Affairs Flashcards ── -->
+        <section class="section section--canvas" aria-labelledby="pak-fc-heading">
+            <div class="section-inner">
+                <h2 id="pak-fc-heading" class="section-heading">Pak Affairs Flashcards.</h2>
+                <p class="section-body">
+                    Every date, every ruler, every fact. Flip to reveal what you need to know for CSS &amp; FPSC exams.
+                </p>
+
+                <div class="pak-fc-tabs">
+                    <button class="pak-fc-tab active" data-mode="dates">Dates</button>
+                    <button class="pak-fc-tab" data-mode="data">Data</button>
+                </div>
+
+                <div class="pak-fc-controls">
+                    <button class="pak-fc-ctrl" id="pak-fc-prev">Prev</button>
+                    <button class="pak-fc-ctrl" id="pak-fc-next">Next</button>
+                    <button class="pak-fc-ctrl" id="pak-fc-shuffle">Shuffle</button>
+                    <span class="pak-fc-hint" id="pak-fc-counter">1 / 25</span>
+                </div>
+
+                <div class="pak-fc-grid" id="pak-fc-grid"></div>
+
+                <div style="text-align:center;margin-top:32px;">
+                    <a class="btn-pill btn-pill--ghost" href="./pak-affairs.html">Open Full Timeline <span style="margin-left:4px;">&rsaquo;</span></a>
+                </div>
+            </div>
+        </section>
+
         <!-- ── Flashcard Access ── -->
         <section class="section section--canvas" aria-labelledby="cards-heading">
             <div class="section-inner">
@@ -586,6 +835,162 @@
     </footer>
 
     <script>
+        // ═══════════════════════════════════════════
+        //  Pak Affairs Flashcards
+        // ═══════════════════════════════════════════
+        (function() {
+            var pakData = [
+                {year:'4000 BC',name:'Indus Valley Civilization',era:'Pre-Islamic',achievement:'Urban Planning Mastery',capital:'Harappa / Mohenjo-Daro',dynasty:'Agrarian Society',desc:'Advanced agrarian society with standardized burnt bricks (7x14x28 cm), sophisticated drainage, and early street lighting panels. Declined due to climate change, not war.'},
+                {year:'~1300 BC',name:'Arrival of Aryans',era:'Pre-Islamic',achievement:'Vedic Culture & Caste System',capital:'Subcontinent Plains',dynasty:'Indo-Aryan Tribes',desc:'Brought Sanskrit and Vedic Culture. Introduced the caste system: Brahmins (priests), Kshatriyas (warriors), Vaishyas (traders), Shudras (untouchables).'},
+                {year:'~500 BC',name:'Jainism & Buddhism',era:'Pre-Islamic',achievement:'Philosophical Rebellion',capital:'Bihar Region',dynasty:'New Religions',desc:'Jainism: 24 Tirthankaras, Ahimsa (non-violence). Buddhism: Gautama Buddha (563 BC), 4 Noble Truths, 8-Fold Path, introduced Yoga.'},
+                {year:'516 - 327 BC',name:'Foreign Invasions',era:'Pre-Islamic',achievement:'Persian & Greek Contact',capital:'North-West Frontier',dynasty:'Achaemenid / Macedonian',desc:'Darius (516 BC) and Cyrus (530 BC) attacked. Alexander the Great (327 BC) fought Battle of Hydaspes vs Raja Porus on the Jhelum River.'},
+                {year:'321 BC',name:'The Mauryan Empire',era:'Pre-Islamic',achievement:'Political Consolidation',capital:'Pataliputra',dynasty:'Maurya',desc:'Chandragupta Maurya with Chanakya (Arthashastra). Ashoka renounced violence after Kalinga, spread Buddhism to Sri Lanka, created 3-Lion Emblem.'},
+                {year:'319 AD',name:'The Gupta Empire',era:'Pre-Islamic',achievement:'The Golden Age',capital:'Pataliputra',dynasty:'Gupta',desc:'Nalanda University built in Bihar. Invention of Zero (Aryabhata), early Solar System understanding, magnetism documentation.'},
+                {year:'712',name:'Muhammad bin Qasim',era:'Islamic',achievement:'First Islamic State Entry',capital:'Sindh / Multan',dynasty:'Umayyad Caliphate',desc:'Sent by Hajjaj Bin Yousuf to attack Raja Dahir in Sindh. First formal entry of Islam into the state and political structure of the subcontinent.'},
+                {year:'1101',name:'Mahmud of Ghazni',era:'Islamic',achievement:'17 Expeditions',capital:'Ghazni',dynasty:'Ghaznavid Empire',desc:'Attacked 17 times (~1001-1024 AD). Battle of Peshawar (1001): defeated Raja Jaipal. Somnath Temple (1024): broke magnetic field holding the idol.'},
+                {year:'1191',name:'Sahabuddin Ghauri',era:'Islamic',achievement:'Foundation of Muslim Rule',capital:'Ghor / Lahore',dynasty:'Ghurid Empire',desc:'Battles of Tarain (1191-1192) vs Prithviraj Chauhan. Lost first, won second, establishing Muslim rule in Delhi. Namesake of Pakistan missile.'},
+                {year:'1206',name:'Slave Dynasty',era:'Islamic',achievement:'The Chalisa & Consolidation',capital:'Delhi / Lahore',dynasty:'Delhi Sultanate',desc:'Qutbuddin Aibak (died playing Polo). Iltutmish created Chalisa (40 Turkish commanders). Razia Sultana: first female Muslim ruler. Balban destroyed the Chalisa.'},
+                {year:'1290',name:'Khilji Dynasty',era:'Islamic',achievement:'Extreme Market Controls',capital:'Delhi',dynasty:'Delhi Sultanate',desc:'Alauddin Khilji murdered his uncle, pushed empire into South India. Extreme market controls: merchants under-weighing goods had flesh cut. Called himself Sikandar-e-Sani.'},
+                {year:'1320',name:'Tughlaq Dynasty',era:'Islamic',achievement:'Disastrous Administrative Reforms',capital:'Delhi / Daulatabad',dynasty:'Delhi Sultanate',desc:'Muhammad Bin Tughlaq: transferred capital Delhi-Daulatabad, introduced token currency (hyperinflation), failed Khorasan expedition. Feroz Shah: irrigation canals.'},
+                {year:'1398',name:'Timur',era:'Islamic',achievement:'Sacking of Delhi',capital:'Samarkand',dynasty:'Timurid Empire',desc:'Attacked 1398, Tughlaqs fled. Plundered Delhi, massacred citizens. Appointed Khizr Khan as governor, founding the Sayyid Dynasty.'},
+                {year:'1414',name:'Sayed Dynasty',era:'Islamic',achievement:'Timurid Vassals',capital:'Delhi',dynasty:'Delhi Sultanate',desc:'Founded by Khizr Khan (appointed by Timur). Limited to Delhi region, strictly vassals of the Timurid Empire. Era: 1414-1451.'},
+                {year:'1451',name:'Lodhi Dynasty',era:'Islamic',achievement:'Afghan Tribal Rule',capital:'Delhi / Agra',dynasty:'Delhi Sultanate',desc:'Bahlol, Sikandar, Ibrahim Lodhi. Sikandar Lodhi shifted capital from Delhi to Agra. Limited geographic scope. Era: 1451-1526.'},
+                {year:'1526',name:'Zahiruddin Babur',era:'Mughal',achievement:'First Battle of Panipat',capital:'Agra',dynasty:'Mughal Empire',desc:'Descendant of Timur + Genghis Khan. 12,000 troops vs Lodhi 100,000. Won with cannons and Tulughma flanking. Authored Tuzuk-e-Babri. Ruled 4 years.'},
+                {year:'1530',name:'Humayun',era:'Mughal',achievement:'First Mughal Succession Crisis',capital:'Delhi / Agra',dynasty:'Mughal Empire',desc:'Brothers conspired against him. Defeated by Sher Shah Suri at Chausa (1539) and Kanauj (1540). 15 years exile in Iran. Blinded brother Kamran.'},
+                {year:'1540',name:'Sher Shah Suri',era:'Mughal',achievement:'Administrative Genius',capital:'Sasaram / Delhi',dynasty:'Sur Empire',desc:'Overthrew Humayun. Agricultural reforms: 1/3 state, 2/3 farmers. Introduced Rupiya (modern Rupee precursor). Built Grand Trunk Road (Bangladesh to Kabul).'},
+                {year:'1555',name:'Humayun (Restored)',era:'Mughal',achievement:'Reclaimed the Mughal Throne',capital:'Delhi',dynasty:'Mughal Empire',desc:'After 15 years exile, defeated Sur forces at Battle of Sirhind (1555). Reign lasted 6 months. Died falling down library stairs (Sher Mandal). Humays Tomb: UNESCO site.'},
+                {year:'1556',name:'Akbar the Great',era:'Mughal',achievement:'Mansabdari & Social Reforms',capital:'Fatehpur Sikri',dynasty:'Mughal Empire',desc:'Emperor at 12. Mansabdari: Zat (rank) + Sawar (cavalry). Din-e-Ilahi (1582): merged Islam+Hinduism. Abolished Jizya. Banned Sati. Gifted Golden Temple land.'},
+                {year:'1605',name:'Jahangir',era:'Mughal',achievement:'Art, Justice & Nur Jahan',capital:'Lahore / Agra',dynasty:'Mughal Empire',desc:'Chain of Justice (golden chain with bells). Greatest art connoisseur. Nur Jahan: coins in her name, issued farmans. Executed Guru Arjan Dev (5th Sikh Guru), militarizing Sikhs.'},
+                {year:'1615',name:'Nur Khan (Nur Jahan)',era:'Mughal',achievement:'Female Empowerment Behind the Throne',capital:'Lahore',dynasty:'Mughal Empire',desc:'Born Mehr-un-Nissa (1577). Coins in her name (only 2nd woman after Razia Sultana). Tomb of Itimad-ud-Daulah = Baby Taj. Sidelined by Shah Jahan after 1627.'},
+                {year:'1615',name:'British Arrival',era:'Mughal',achievement:'East India Company Established',capital:'Surat / Agra',dynasty:'British East India Company',desc:'Sir Thomas Roe: first ambassador of James I. Trading factory at Surat. EIC founded 1600 by Elizabeth I. Soft entry colonialism model. Strategic patience vs Portuguese/Dutch.'},
+                {year:'1628',name:'Shah Jahan',era:'Mughal',achievement:'The Golden Age of Architecture',capital:'Delhi / Agra',dynasty:'Mughal Empire',desc:'Taj Mahal (1632-1653): 22 years, 20,000 workers, 32M rupees (~$1B today). Red Fort, Jama Masjid, Shahjahanabad. Sons fought War of Succession. Imprisoned by Aurangzeb.'},
+                {year:'1658',name:'Aurangzeb',era:'Mughal',achievement:'Empire Peak & Rise of the West',capital:'Delhi',dynasty:'Mughal Empire',desc:'Defeated brothers, executed Dara Shikoh, imprisoned father. Peak territory. Imposed Sharia, reinstated Jizya. Sparked Maratha/Sikh revolts. 7 reasons Mughals fell vs West rose.'}
+            ];
+
+            var grid = document.getElementById('pak-fc-grid');
+            var tabs = document.querySelectorAll('.pak-fc-tab');
+            var counter = document.getElementById('pak-fc-counter');
+            var mode = 'dates';
+            var currentIdx = 0;
+
+            function stripHtml(html) {
+                var tmp = document.createElement('div');
+                tmp.innerHTML = html;
+                return tmp.textContent || tmp.innerText || '';
+            }
+
+            function renderCards() {
+                grid.innerHTML = '';
+                if (mode === 'dates') {
+                    pakData.forEach(function(d, i) {
+                        var card = createCard(
+                            d.era,
+                            d.year,
+                            d.name,
+                            d.name,
+                            d.year,
+                            d.achievement,
+                            d.capital,
+                            d.dynasty,
+                            stripHtml(d.desc).substring(0, 120) + '...'
+                        );
+                        grid.appendChild(card);
+                    });
+                } else {
+                    pakData.forEach(function(d, i) {
+                        var card = createCard(
+                            d.era,
+                            d.name,
+                            d.year,
+                            d.name,
+                            d.year,
+                            d.achievement,
+                            d.capital,
+                            d.dynasty,
+                            stripHtml(d.desc).substring(0, 120) + '...'
+                        );
+                        grid.appendChild(card);
+                    });
+                }
+                updateCounter();
+            }
+
+            function createCard(era, frontLine1, frontLine2, title, year, achievement, capital, dynasty, desc) {
+                var wrapper = document.createElement('div');
+                wrapper.className = 'pak-fc-card-wrapper';
+                var card = document.createElement('div');
+                card.className = 'pak-fc-card';
+
+                card.innerHTML =
+                    '<div class="pak-fc-face pak-fc-front">' +
+                        '<span class="pak-fc-era">' + era + '</span>' +
+                        '<div class="pak-fc-year">' + frontLine1 + '</div>' +
+                        '<div class="pak-fc-name">' + frontLine2 + '</div>' +
+                    '</div>' +
+                    '<div class="pak-fc-face pak-fc-back">' +
+                        '<div class="pak-fc-back-title">' + title + '</div>' +
+                        '<div class="pak-fc-back-year">' + year + '</div>' +
+                        '<div class="pak-fc-row"><strong>Achievement:</strong> ' + achievement + '</div>' +
+                        '<div class="pak-fc-row"><strong>Capital:</strong> ' + capital + '</div>' +
+                        '<div class="pak-fc-row"><strong>Dynasty:</strong> ' + dynasty + '</div>' +
+                        '<div class="pak-fc-desc">' + desc + '</div>' +
+                    '</div>';
+
+                card.addEventListener('click', function() {
+                    card.classList.toggle('flipped');
+                });
+
+                wrapper.appendChild(card);
+                return wrapper;
+            }
+
+            function updateCounter() {
+                counter.textContent = (currentIdx + 1) + ' / ' + pakData.length;
+            }
+
+            // Tab switching
+            tabs.forEach(function(tab) {
+                tab.addEventListener('click', function() {
+                    tabs.forEach(function(t) { t.classList.remove('active'); });
+                    tab.classList.add('active');
+                    mode = tab.getAttribute('data-mode');
+                    currentIdx = 0;
+                    renderCards();
+                });
+            });
+
+            // Prev / Next
+            document.getElementById('pak-fc-prev').addEventListener('click', function() {
+                var cards = grid.querySelectorAll('.pak-fc-card-wrapper');
+                cards[currentIdx].querySelector('.pak-fc-card').classList.remove('flipped');
+                currentIdx = (currentIdx - 1 + cards.length) % cards.length;
+                cards[currentIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                updateCounter();
+            });
+
+            document.getElementById('pak-fc-next').addEventListener('click', function() {
+                var cards = grid.querySelectorAll('.pak-fc-card-wrapper');
+                cards[currentIdx].querySelector('.pak-fc-card').classList.remove('flipped');
+                currentIdx = (currentIdx + 1) % cards.length;
+                cards[currentIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                updateCounter();
+            });
+
+            // Shuffle
+            document.getElementById('pak-fc-shuffle').addEventListener('click', function() {
+                for (var i = pakData.length - 1; i > 0; i--) {
+                    var j = Math.floor(Math.random() * (i + 1));
+                    var temp = pakData[i];
+                    pakData[i] = pakData[j];
+                    pakData[j] = temp;
+                }
+                currentIdx = 0;
+                renderCards();
+            });
+
+            renderCards();
+        })();
+
         // Theme toggle
         const toggle = document.getElementById('theme-toggle');
         const body = document.body;
