@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Pak Affairs Flashcards - 25 cards covering every date and ruler from the Indus Valley to Aurangzeb. CSS & FPSC exam revision.">
+    <meta name="theme-color" content="#1d1d1f">
+    <title>Pak Affairs Flashcards</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-primary-ink: #1d1d1f;
+            --color-mid-gray: #707070;
+            --color-deep-gray: #474747;
+            --color-hairline: #d6d6d6;
+            --color-canvas: #f5f5f7;
+            --color-paper: #ffffff;
+            --color-cool-wash: #e8e8ed;
+            --color-electric-blue: #0071e3;
+            --color-link-blue: #0066cc;
+            --color-ember: #b64400;
+            --font-main: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --radius-cards: 28px;
+            --radius-buttons: 980px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--color-paper);
+            color: var(--color-primary-ink);
+            font-family: var(--font-main);
+            -webkit-font-smoothing: antialiased;
+            scroll-behavior: smooth;
+        }
+
+        body { overflow-x: hidden; }
+
+        a { color: var(--color-link-blue); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        /* ── Global Nav ── */
+        .global-nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 clamp(20px, 4vw, 40px);
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        .nav-brand {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--color-primary-ink);
+            letter-spacing: -0.02em;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 28px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-links a {
+            font-size: 12px;
+            font-weight: 400;
+            color: var(--color-deep-gray);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover { color: var(--color-primary-ink); text-decoration: none; }
+
+        .nav-links .nav-divider {
+            width: 1px;
+            height: 16px;
+            background: var(--color-hairline);
+            align-self: center;
+        }
+
+        @media (max-width: 768px) { .nav-links { display: none; } }
+
+        /* ── Hero ── */
+        .hero {
+            padding: clamp(60px, 10vh, 100px) clamp(20px, 4vw, 80px) clamp(30px, 5vh, 50px);
+            text-align: center;
+            background: var(--color-paper);
+        }
+
+        .hero-eyebrow {
+            display: inline-block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--color-ember);
+            letter-spacing: -0.224px;
+            margin-bottom: 12px;
+        }
+
+        .hero-title {
+            font-size: clamp(48px, 8vw, 96px);
+            font-weight: 700;
+            line-height: 1.04;
+            letter-spacing: -1.44px;
+            color: var(--color-primary-ink);
+            margin: 0 0 24px;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(17px, 2.2vw, 21px);
+            font-weight: 400;
+            line-height: 1.47;
+            color: var(--color-mid-gray);
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+
+        .cta-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .btn-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 28px;
+            font-family: var(--font-main);
+            font-size: 17px;
+            font-weight: 400;
+            border-radius: var(--radius-buttons);
+            text-decoration: none;
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+            cursor: pointer;
+            min-height: 52px;
+            letter-spacing: -0.022em;
+        }
+
+        .btn-pill--primary {
+            background: var(--color-electric-blue);
+            color: var(--color-paper);
+            border: none;
+        }
+        .btn-pill--primary:hover { background: #0077ed; text-decoration: none; }
+
+        .btn-pill--ghost {
+            background: transparent;
+            color: var(--color-primary-ink);
+            border: 1px solid var(--color-primary-ink);
+        }
+        .btn-pill--ghost:hover { background: var(--color-primary-ink); color: var(--color-paper); text-decoration: none; }
+
+        .hero-pricing {
+            font-size: 17px;
+            color: var(--color-mid-gray);
+            margin-top: 8px;
+        }
+
+        /* ── Tabs ── */
+        .fc-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 32px;
+        }
+
+        .fc-tab {
+            padding: 12px 28px;
+            border-radius: var(--radius-buttons);
+            border: 1px solid var(--color-hairline);
+            background: transparent;
+            color: var(--color-primary-ink);
+            font-family: var(--font-main);
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+        }
+        .fc-tab:hover { background: var(--color-cool-wash); }
+        .fc-tab.active {
+            background: var(--color-primary-ink);
+            color: var(--color-paper);
+            border-color: var(--color-primary-ink);
+        }
+
+        /* ── Controls ── */
+        .fc-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .fc-ctrl {
+            padding: 10px 22px;
+            border-radius: var(--radius-buttons);
+            border: 1px solid var(--color-hairline);
+            background: transparent;
+            color: var(--color-mid-gray);
+            font-family: var(--font-main);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .fc-ctrl:hover { background: var(--color-cool-wash); color: var(--color-primary-ink); }
+
+        .fc-counter {
+            font-size: 14px;
+            color: var(--color-mid-gray);
+            font-weight: 500;
+            margin-left: 8px;
+        }
+
+        /* ── Card Grid ── */
+        .fc-section {
+            padding: 0 clamp(20px, 4vw, 80px) clamp(40px, 6vh, 80px);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .fc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .fc-card-wrapper {
+            perspective: 1000px;
+            height: 240px;
+        }
+
+        .fc-card {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .fc-card.flipped { transform: rotateY(180deg); }
+
+        .fc-face {
+            position: absolute;
+            inset: 0;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: var(--radius-cards);
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .fc-front {
+            background: var(--color-paper);
+            border: 1px solid var(--color-hairline);
+        }
+
+        .fc-back {
+            background: var(--color-canvas);
+            border: 1px solid var(--color-hairline);
+            transform: rotateY(180deg);
+            justify-content: flex-start;
+            align-items: flex-start;
+            text-align: left;
+            overflow-y: auto;
+        }
+
+        .fc-back::-webkit-scrollbar { width: 4px; }
+        .fc-back::-webkit-scrollbar-thumb { background: var(--color-hairline); border-radius: 4px; }
+
+        .fc-era {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--color-mid-gray);
+            margin-bottom: 12px;
+        }
+
+        .fc-front .fc-year {
+            font-size: clamp(44px, 6vw, 60px);
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -1.2px;
+            color: var(--color-primary-ink);
+            margin: 0 0 12px;
+        }
+
+        .fc-front .fc-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--color-mid-gray);
+            margin: 0;
+        }
+
+        .fc-back .fc-back-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--color-primary-ink);
+            margin: 0 0 8px;
+            line-height: 1.2;
+        }
+
+        .fc-back .fc-back-year {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-electric-blue);
+            margin-bottom: 10px;
+        }
+
+        .fc-back .fc-row {
+            font-size: 13px;
+            color: var(--color-mid-gray);
+            margin-bottom: 4px;
+            line-height: 1.5;
+        }
+
+        .fc-back .fc-row strong {
+            color: var(--color-primary-ink);
+            font-weight: 600;
+        }
+
+        .fc-back .fc-desc {
+            font-size: 12px;
+            color: var(--color-mid-gray);
+            line-height: 1.5;
+            margin-top: 10px;
+            border-top: 1px solid var(--color-hairline);
+            padding-top: 10px;
+        }
+
+        .fc-hint {
+            font-size: 12px;
+            color: var(--color-hairline);
+        }
+
+        .fc-footer {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 640px) {
+            .fc-grid { grid-template-columns: 1fr; }
+            .fc-card-wrapper { height: 220px; }
+        }
+
+        /* ── Footer ── */
+        .site-footer {
+            background: var(--color-canvas);
+            padding: clamp(40px, 6vh, 80px) clamp(20px, 4vw, 80px);
+        }
+        .footer-inner { max-width: 1200px; margin: 0 auto; }
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 32px;
+            margin-bottom: 40px;
+        }
+        .footer-col-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--color-mid-gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0 0 12px;
+        }
+        .footer-col a {
+            display: block;
+            font-size: 14px;
+            font-weight: 400;
+            color: var(--color-mid-gray);
+            text-decoration: none;
+            margin-bottom: 8px;
+        }
+        .footer-col a:hover { color: var(--color-primary-ink); text-decoration: none; }
+        .footer-legal {
+            border-top: 1px solid var(--color-hairline);
+            padding-top: 20px;
+            font-size: 12px;
+            color: var(--color-mid-gray);
+            line-height: 1.33;
+        }
+        .footer-legal a { color: var(--color-link-blue); }
+
+        /* ── Dark Mode ── */
+        [data-theme="dark"] {
+            --color-primary-ink: #f8fafc;
+            --color-mid-gray: #94a3b8;
+            --color-deep-gray: #cbd5e1;
+            --color-hairline: #334155;
+            --color-canvas: #0f172a;
+            --color-paper: #1e293b;
+            --color-cool-wash: #1e293b;
+        }
+        [data-theme="dark"] .global-nav {
+            background: rgba(15, 23, 42, 0.82);
+            border-bottom-color: rgba(51, 65, 85, 0.5);
+        }
+        [data-theme="dark"] .btn-pill--ghost {
+            border-color: var(--color-mid-gray);
+        }
+        [data-theme="dark"] .btn-pill--ghost:hover {
+            background: var(--color-primary-ink);
+            color: var(--color-canvas);
+        }
+        [data-theme="dark"] .fc-tab {
+            border-color: var(--color-hairline);
+            color: var(--color-primary-ink);
+        }
+        [data-theme="dark"] .fc-tab.active {
+            background: var(--color-primary-ink);
+            color: var(--color-canvas);
+            border-color: var(--color-primary-ink);
+        }
+        [data-theme="dark"] .fc-ctrl {
+            border-color: var(--color-hairline);
+            color: var(--color-mid-gray);
+        }
+        [data-theme="dark"] .fc-ctrl:hover {
+            background: var(--color-cool-wash);
+            color: var(--color-primary-ink);
+        }
+        [data-theme="dark"] .fc-front {
+            background: var(--color-paper);
+            border-color: var(--color-hairline);
+        }
+        [data-theme="dark"] .fc-back {
+            background: var(--color-canvas);
+            border-color: var(--color-hairline);
+        }
+    </style>
+</head>
+<body data-theme="light">
+
+    <!-- ── Global Nav ── -->
+    <nav class="global-nav" role="navigation" aria-label="Global">
+        <a href="./index.html" class="nav-brand" style="text-decoration:none;">Master Study Hub</a>
+        <ul class="nav-links">
+            <li><a href="./gk-browse.html">GK</a></li>
+            <li><a href="./vocab-browse.html">Vocabulary</a></li>
+            <li><a href="./pak-affairs.html">Pak Affairs</a></li>
+            <li class="nav-divider" aria-hidden="true"></li>
+            <li><a href="#" id="theme-toggle" role="button" aria-label="Toggle dark mode">Auto</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <!-- ── Hero ── -->
+        <section class="hero" aria-labelledby="fc-hero-title">
+            <p class="hero-eyebrow">CSS & FPSC Exam Prep</p>
+            <h1 id="fc-hero-title" class="hero-title">Pak Affairs<br>Flashcards.</h1>
+            <p class="hero-subtitle">
+                25 cards covering every date, every ruler, every fact from the Indus Valley to Aurangzeb. Flip to reveal what you need to know.
+            </p>
+            <div class="cta-group">
+                <a class="btn-pill btn-pill--ghost" href="./pak-affairs.html">Open Timeline</a>
+                <a class="btn-pill btn-pill--ghost" href="./index.html">Back to Hub</a>
+            </div>
+        </section>
+
+        <!-- ── Flashcard Engine ── -->
+        <section class="fc-section">
+            <div class="fc-tabs">
+                <button class="fc-tab active" data-mode="dates">Dates</button>
+                <button class="fc-tab" data-mode="data">Data</button>
+            </div>
+
+            <div class="fc-controls">
+                <button class="fc-ctrl" id="fc-prev">Prev</button>
+                <button class="fc-ctrl" id="fc-next">Next</button>
+                <button class="fc-ctrl" id="fc-shuffle">Shuffle</button>
+                <span class="fc-counter" id="fc-counter">1 / 25</span>
+            </div>
+
+            <div class="fc-grid" id="fc-grid"></div>
+
+            <div class="fc-footer">
+                <a class="btn-pill btn-pill--ghost" href="./pak-affairs.html">Open Full Timeline &rsaquo;</a>
+            </div>
+        </section>
+    </main>
+
+    <!-- ── Footer ── -->
+    <footer class="site-footer" role="contentinfo">
+        <div class="footer-inner">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4 class="footer-col-title">General Knowledge</h4>
+                    <a href="./gk-browse.html">Browse GK</a>
+                    <a href="./gk.html">GK Flashcards</a>
+                </div>
+                <div class="footer-col">
+                    <h4 class="footer-col-title">Vocabulary</h4>
+                    <a href="./vocab-browse.html">Browse Vocabulary</a>
+                    <a href="./vocab.html">Vocab Flashcards</a>
+                </div>
+                <div class="footer-col">
+                    <h4 class="footer-col-title">Pak Affairs</h4>
+                    <a href="./pak-affairs.html">History Portal</a>
+                    <a href="./pak-flashcards.html">Flashcards</a>
+                </div>
+            </div>
+            <p class="footer-legal">
+                Copyright &copy; 2026 Master Study Hub. All rights reserved.
+                No cookies. No analytics. Your data stays yours.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // ═══════════════════════════════════════════
+        //  Pak Affairs Flashcards — All 25 Entries
+        // ═══════════════════════════════════════════
+        var pakData = [
+            {year:'4000 BC',name:'Indus Valley Civilization',era:'Pre-Islamic',achievement:'Urban Planning Mastery',capital:'Harappa / Mohenjo-Daro',dynasty:'Agrarian Society',desc:'Advanced agrarian society with standardized burnt bricks (7x14x28 cm), sophisticated drainage, and early street lighting panels. Declined due to climate change, not war.'},
+            {year:'~1300 BC',name:'Arrival of Aryans',era:'Pre-Islamic',achievement:'Vedic Culture & Caste System',capital:'Subcontinent Plains',dynasty:'Indo-Aryan Tribes',desc:'Brought Sanskrit and Vedic Culture. Introduced the caste system: Brahmins (priests), Kshatriyas (warriors), Vaishyas (traders), Shudras (untouchables).'},
+            {year:'~500 BC',name:'Jainism & Buddhism',era:'Pre-Islamic',achievement:'Philosophical Rebellion',capital:'Bihar Region',dynasty:'New Religions',desc:'Jainism: 24 Tirthankaras, Ahimsa (non-violence). Buddhism: Gautama Buddha (563 BC), 4 Noble Truths, 8-Fold Path, introduced Yoga.'},
+            {year:'516 - 327 BC',name:'Foreign Invasions',era:'Pre-Islamic',achievement:'Persian & Greek Contact',capital:'North-West Frontier',dynasty:'Achaemenid / Macedonian',desc:'Darius (516 BC) and Cyrus (530 BC) attacked. Alexander the Great (327 BC) fought Battle of Hydaspes vs Raja Porus on the Jhelum River.'},
+            {year:'321 BC',name:'The Mauryan Empire',era:'Pre-Islamic',achievement:'Political Consolidation',capital:'Pataliputra',dynasty:'Maurya',desc:'Chandragupta Maurya with Chanakya (Arthashastra). Ashoka renounced violence after Kalinga, spread Buddhism to Sri Lanka, created 3-Lion Emblem.'},
+            {year:'319 AD',name:'The Gupta Empire',era:'Pre-Islamic',achievement:'The Golden Age',capital:'Pataliputra',dynasty:'Gupta',desc:'Nalanda University built in Bihar. Invention of Zero (Aryabhata), early Solar System understanding, magnetism documentation.'},
+            {year:'712',name:'Muhammad bin Qasim',era:'Islamic',achievement:'First Islamic State Entry',capital:'Sindh / Multan',dynasty:'Umayyad Caliphate',desc:'Sent by Hajjaj Bin Yousuf to attack Raja Dahir in Sindh. First formal entry of Islam into the state and political structure of the subcontinent.'},
+            {year:'1101',name:'Mahmud of Ghazni',era:'Islamic',achievement:'17 Expeditions',capital:'Ghazni',dynasty:'Ghaznavid Empire',desc:'Attacked 17 times (~1001-1024 AD). Battle of Peshawar (1001): defeated Raja Jaipal. Somnath Temple (1024): broke magnetic field holding the idol.'},
+            {year:'1191',name:'Sahabuddin Ghauri',era:'Islamic',achievement:'Foundation of Muslim Rule',capital:'Ghor / Lahore',dynasty:'Ghurid Empire',desc:'Battles of Tarain (1191-1192) vs Prithviraj Chauhan. Lost first, won second, establishing Muslim rule in Delhi. Namesake of Pakistan missile.'},
+            {year:'1206',name:'Slave Dynasty',era:'Islamic',achievement:'The Chalisa & Consolidation',capital:'Delhi / Lahore',dynasty:'Delhi Sultanate',desc:'Qutbuddin Aibak (died playing Polo). Iltutmish created Chalisa (40 Turkish commanders). Razia Sultana: first female Muslim ruler. Balban destroyed the Chalisa.'},
+            {year:'1290',name:'Khilji Dynasty',era:'Islamic',achievement:'Extreme Market Controls',capital:'Delhi',dynasty:'Delhi Sultanate',desc:'Alauddin Khilji murdered his uncle, pushed empire into South India. Extreme market controls: merchants under-weighing goods had flesh cut. Called himself Sikandar-e-Sani.'},
+            {year:'1320',name:'Tughlaq Dynasty',era:'Islamic',achievement:'Disastrous Administrative Reforms',capital:'Delhi / Daulatabad',dynasty:'Delhi Sultanate',desc:'Muhammad Bin Tughlaq: transferred capital Delhi-Daulatabad, introduced token currency (hyperinflation), failed Khorasan expedition. Feroz Shah: irrigation canals.'},
+            {year:'1398',name:'Timur',era:'Islamic',achievement:'Sacking of Delhi',capital:'Samarkand',dynasty:'Timurid Empire',desc:'Attacked 1398, Tughlaqs fled. Plundered Delhi, massacred citizens. Appointed Khizr Khan as governor, founding the Sayyid Dynasty.'},
+            {year:'1414',name:'Sayed Dynasty',era:'Islamic',achievement:'Timurid Vassals',capital:'Delhi',dynasty:'Delhi Sultanate',desc:'Founded by Khizr Khan (appointed by Timur). Limited to Delhi region, strictly vassals of the Timurid Empire. Era: 1414-1451.'},
+            {year:'1451',name:'Lodhi Dynasty',era:'Islamic',achievement:'Afghan Tribal Rule',capital:'Delhi / Agra',dynasty:'Delhi Sultanate',desc:'Bahlol, Sikandar, Ibrahim Lodhi. Sikandar Lodhi shifted capital from Delhi to Agra. Limited geographic scope. Era: 1451-1526.'},
+            {year:'1526',name:'Zahiruddin Babur',era:'Mughal',achievement:'First Battle of Panipat',capital:'Agra',dynasty:'Mughal Empire',desc:'Descendant of Timur + Genghis Khan. 12,000 troops vs Lodhi 100,000. Won with cannons and Tulughma flanking. Authored Tuzuk-e-Babri. Ruled 4 years.'},
+            {year:'1530',name:'Humayun',era:'Mughal',achievement:'First Mughal Succession Crisis',capital:'Delhi / Agra',dynasty:'Mughal Empire',desc:'Brothers conspired against him. Defeated by Sher Shah Suri at Chausa (1539) and Kanauj (1540). 15 years exile in Iran. Blinded brother Kamran.'},
+            {year:'1540',name:'Sher Shah Suri',era:'Mughal',achievement:'Administrative Genius',capital:'Sasaram / Delhi',dynasty:'Sur Empire',desc:'Overthrew Humayun. Agricultural reforms: 1/3 state, 2/3 farmers. Introduced Rupiya (modern Rupee precursor). Built Grand Trunk Road (Bangladesh to Kabul).'},
+            {year:'1555',name:'Humayun (Restored)',era:'Mughal',achievement:'Reclaimed the Mughal Throne',capital:'Delhi',dynasty:'Mughal Empire',desc:'After 15 years exile, defeated Sur forces at Battle of Sirhind (1555). Reign lasted 6 months. Died falling down library stairs (Sher Mandal). Humays Tomb: UNESCO site.'},
+            {year:'1556',name:'Akbar the Great',era:'Mughal',achievement:'Mansabdari & Social Reforms',capital:'Fatehpur Sikri',dynasty:'Mughal Empire',desc:'Emperor at 12. Mansabdari: Zat (rank) + Sawar (cavalry). Din-e-Ilahi (1582): merged Islam+Hinduism. Abolished Jizya. Banned Sati. Gifted Golden Temple land.'},
+            {year:'1605',name:'Jahangir',era:'Mughal',achievement:'Art, Justice & Nur Jahan',capital:'Lahore / Agra',dynasty:'Mughal Empire',desc:'Chain of Justice (golden chain with bells). Greatest art connoisseur. Nur Jahan: coins in her name, issued farmans. Executed Guru Arjan Dev (5th Sikh Guru), militarizing Sikhs.'},
+            {year:'1615',name:'Nur Khan (Nur Jahan)',era:'Mughal',achievement:'Female Empowerment Behind the Throne',capital:'Lahore',dynasty:'Mughal Empire',desc:'Born Mehr-un-Nissa (1577). Coins in her name (only 2nd woman after Razia Sultana). Tomb of Itimad-ud-Daulah = Baby Taj. Sidelined by Shah Jahan after 1627.'},
+            {year:'1615',name:'British Arrival',era:'Mughal',achievement:'East India Company Established',capital:'Surat / Agra',dynasty:'British East India Company',desc:'Sir Thomas Roe: first ambassador of James I. Trading factory at Surat. EIC founded 1600 by Elizabeth I. Soft entry colonialism model. Strategic patience vs Portuguese/Dutch.'},
+            {year:'1628',name:'Shah Jahan',era:'Mughal',achievement:'The Golden Age of Architecture',capital:'Delhi / Agra',dynasty:'Mughal Empire',desc:'Taj Mahal (1632-1653): 22 years, 20,000 workers, 32M rupees (~$1B today). Red Fort, Jama Masjid, Shahjahanabad. Sons fought War of Succession. Imprisoned by Aurangzeb.'},
+            {year:'1658',name:'Aurangzeb',era:'Mughal',achievement:'Empire Peak & Rise of the West',capital:'Delhi',dynasty:'Mughal Empire',desc:'Defeated brothers, executed Dara Shikoh, imprisoned father. Peak territory. Imposed Sharia, reinstated Jizya. Sparked Maratha/Sikh revolts. 7 reasons Mughals fell vs West rose.'}
+        ];
+
+        var grid = document.getElementById('fc-grid');
+        var tabs = document.querySelectorAll('.fc-tab');
+        var counter = document.getElementById('fc-counter');
+        var mode = 'dates';
+        var currentIdx = 0;
+
+        function renderCards() {
+            grid.innerHTML = '';
+            pakData.forEach(function(d) {
+                var isDate = (mode === 'dates');
+                var frontLine1 = isDate ? d.year : d.name;
+                var frontLine2 = isDate ? d.name : d.year;
+                var card = createCard(d.era, frontLine1, frontLine2, d.name, d.year, d.achievement, d.capital, d.dynasty, d.desc);
+                grid.appendChild(card);
+            });
+            counter.textContent = (currentIdx + 1) + ' / ' + pakData.length;
+        }
+
+        function createCard(era, frontLine1, frontLine2, title, year, achievement, capital, dynasty, desc) {
+            var wrapper = document.createElement('div');
+            wrapper.className = 'fc-card-wrapper';
+            var card = document.createElement('div');
+            card.className = 'fc-card';
+
+            card.innerHTML =
+                '<div class="fc-face fc-front">' +
+                    '<span class="fc-era">' + era + '</span>' +
+                    '<div class="fc-year">' + frontLine1 + '</div>' +
+                    '<div class="fc-name">' + frontLine2 + '</div>' +
+                '</div>' +
+                '<div class="fc-face fc-back">' +
+                    '<div class="fc-back-title">' + title + '</div>' +
+                    '<div class="fc-back-year">' + year + '</div>' +
+                    '<div class="fc-row"><strong>Achievement:</strong> ' + achievement + '</div>' +
+                    '<div class="fc-row"><strong>Capital:</strong> ' + capital + '</div>' +
+                    '<div class="fc-row"><strong>Dynasty:</strong> ' + dynasty + '</div>' +
+                    '<div class="fc-desc">' + desc + '</div>' +
+                '</div>';
+
+            card.addEventListener('click', function() {
+                card.classList.toggle('flipped');
+            });
+
+            wrapper.appendChild(card);
+            return wrapper;
+        }
+
+        // Tab switching
+        tabs.forEach(function(tab) {
+            tab.addEventListener('click', function() {
+                tabs.forEach(function(t) { t.classList.remove('active'); });
+                tab.classList.add('active');
+                mode = tab.getAttribute('data-mode');
+                currentIdx = 0;
+                renderCards();
+            });
+        });
+
+        // Prev / Next
+        document.getElementById('fc-prev').addEventListener('click', function() {
+            var cards = grid.querySelectorAll('.fc-card-wrapper');
+            cards[currentIdx].querySelector('.fc-card').classList.remove('flipped');
+            currentIdx = (currentIdx - 1 + cards.length) % cards.length;
+            cards[currentIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            counter.textContent = (currentIdx + 1) + ' / ' + pakData.length;
+        });
+
+        document.getElementById('fc-next').addEventListener('click', function() {
+            var cards = grid.querySelectorAll('.fc-card-wrapper');
+            cards[currentIdx].querySelector('.fc-card').classList.remove('flipped');
+            currentIdx = (currentIdx + 1) % cards.length;
+            cards[currentIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            counter.textContent = (currentIdx + 1) + ' / ' + pakData.length;
+        });
+
+        // Shuffle
+        document.getElementById('fc-shuffle').addEventListener('click', function() {
+            for (var i = pakData.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var temp = pakData[i];
+                pakData[i] = pakData[j];
+                pakData[j] = temp;
+            }
+            currentIdx = 0;
+            renderCards();
+        });
+
+        renderCards();
+
+        // Theme toggle
+        var toggle = document.getElementById('theme-toggle');
+        var body = document.body;
+        var stored = localStorage.getItem('theme');
+        if (stored) {
+            body.setAttribute('data-theme', stored);
+            toggle.textContent = stored === 'dark' ? 'Light' : 'Dark';
+        }
+        toggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            var current = body.getAttribute('data-theme');
+            var next = current === 'dark' ? 'light' : 'dark';
+            body.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            toggle.textContent = next === 'dark' ? 'Light' : 'Dark';
+        });
+    </script>
+</body>
+</html>
