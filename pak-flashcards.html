@@ -366,6 +366,33 @@
             color: var(--color-hairline);
         }
 
+        .fc-dir-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: var(--radius-buttons);
+            border: 1px solid var(--color-hairline);
+            background: transparent;
+            color: var(--color-mid-gray);
+            font-family: var(--font-main);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+        }
+
+        .fc-dir-toggle:hover {
+            background: var(--color-cool-wash);
+            color: var(--color-primary-ink);
+        }
+
+        .fc-dir-toggle.active-dir {
+            background: var(--color-electric-blue);
+            color: var(--color-paper);
+            border-color: var(--color-electric-blue);
+        }
+
         .fc-footer {
             text-align: center;
             margin-top: 40px;
@@ -497,7 +524,11 @@
                 <button class="fc-tab" data-mode="data">Data (Rulers)</button>
             </div>
 
-            <div class="fc-controls">
+            <div class="fc-controls" id="fc-controls-row">
+                <button class="fc-dir-toggle active-dir" id="fc-dir-btn" title="Flip question/answer direction">
+                    <span id="fc-dir-icon">?</span>
+                    <span id="fc-dir-label">Question first</span>
+                </button>
                 <button class="fc-ctrl" id="fc-prev">Prev</button>
                 <button class="fc-ctrl" id="fc-next">Next</button>
                 <button class="fc-ctrl" id="fc-shuffle">Shuffle</button>
@@ -611,24 +642,24 @@
         var grid = document.getElementById('fc-grid');
         var tabs = document.querySelectorAll('.fc-tab');
         var counter = document.getElementById('fc-counter');
+        var dirBtn = document.getElementById('fc-dir-btn');
+        var dirIcon = document.getElementById('fc-dir-icon');
+        var dirLabel = document.getElementById('fc-dir-label');
         var mode = 'dates';
+        var direction = 'question';
         var currentIdx = 0;
         var activeData = dateCards;
 
         function renderCards() {
             grid.innerHTML = '';
             activeData = (mode === 'dates') ? dateCards : dataCards;
-            activeData.forEach(function(d, i) {
-                var card;
-                if (mode === 'dates') {
-                    card = createDateCard(d);
-                } else {
-                    card = createDataCard(d);
-                }
+            activeData.forEach(function(d) {
+                var card = (mode === 'dates') ? createDateCard(d) : createDataCard(d);
                 grid.appendChild(card);
             });
             currentIdx = 0;
             counter.textContent = '1 / ' + activeData.length;
+            dirBtn.style.display = (mode === 'dates') ? '' : 'none';
         }
 
         function createDateCard(d) {
@@ -636,15 +667,28 @@
             wrapper.className = 'fc-card-wrapper';
             var card = document.createElement('div');
             card.className = 'fc-card';
-            card.innerHTML =
-                '<div class="fc-face fc-front">' +
-                    '<span class="fc-era">' + d.era + '</span>' +
-                    '<div class="fc-question">' + d.q + '</div>' +
-                '</div>' +
-                '<div class="fc-face fc-back">' +
-                    '<div class="fc-back-title" style="color:var(--color-electric-blue);">' + d.a + '</div>' +
-                    '<div class="fc-desc">' + d.detail + '</div>' +
-                '</div>';
+            if (direction === 'question') {
+                card.innerHTML =
+                    '<div class="fc-face fc-front">' +
+                        '<span class="fc-era">' + d.era + '</span>' +
+                        '<div class="fc-question">' + d.q + '</div>' +
+                    '</div>' +
+                    '<div class="fc-face fc-back">' +
+                        '<div class="fc-back-title" style="color:var(--color-electric-blue);">' + d.a + '</div>' +
+                        '<div class="fc-desc">' + d.detail + '</div>' +
+                    '</div>';
+            } else {
+                card.innerHTML =
+                    '<div class="fc-face fc-front">' +
+                        '<span class="fc-era">' + d.era + '</span>' +
+                        '<div class="fc-year">' + d.a + '</div>' +
+                        '<div class="fc-name">Which empire or event?</div>' +
+                    '</div>' +
+                    '<div class="fc-face fc-back">' +
+                        '<div class="fc-back-title" style="color:var(--color-electric-blue);">' + d.q + '</div>' +
+                        '<div class="fc-desc">' + d.detail + '</div>' +
+                    '</div>';
+            }
             card.addEventListener('click', function() { card.classList.toggle('flipped'); });
             wrapper.appendChild(card);
             return wrapper;
@@ -682,6 +726,22 @@
                 mode = tab.getAttribute('data-mode');
                 renderCards();
             });
+        });
+
+        // Direction toggle (Dates tab only)
+        dirBtn.addEventListener('click', function() {
+            if (direction === 'question') {
+                direction = 'answer';
+                dirBtn.classList.remove('active-dir');
+                dirIcon.textContent = '\u21BB';
+                dirLabel.textContent = 'Year first';
+            } else {
+                direction = 'question';
+                dirBtn.classList.add('active-dir');
+                dirIcon.textContent = '?';
+                dirLabel.textContent = 'Question first';
+            }
+            renderCards();
         });
 
         // Prev / Next
