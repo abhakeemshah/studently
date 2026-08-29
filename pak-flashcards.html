@@ -489,10 +489,8 @@
                     <span id="fc-dir-icon">?</span>
                     <span id="fc-dir-label">Question first</span>
                 </button>
-                <button class="fc-ctrl" id="fc-prev">Prev</button>
-                <button class="fc-ctrl" id="fc-next">Next</button>
                 <button class="fc-ctrl" id="fc-shuffle">Shuffle</button>
-                <span class="fc-counter" id="fc-counter">1 / 25</span>
+                <span class="fc-counter" id="fc-counter">25 cards</span>
             </div>
 
             <div class="fc-grid" id="fc-grid"></div>
@@ -569,15 +567,14 @@
         var dirIcon = document.getElementById('fc-dir-icon');
         var dirLabel = document.getElementById('fc-dir-label');
         var direction = 'question';
-        var currentIdx = 0;
+
 
         function renderCards() {
             grid.innerHTML = '';
             dateCards.forEach(function(d) {
                 grid.appendChild(createDateCard(d));
             });
-            currentIdx = 0;
-            counter.textContent = '1 / ' + dateCards.length;
+            counter.textContent = dateCards.length + ' cards';
         }
 
         function createDateCard(d) {
@@ -626,23 +623,6 @@
                 dirLabel.textContent = 'Question first';
             }
             renderCards();
-        });
-
-        // Prev / Next
-        document.getElementById('fc-prev').addEventListener('click', function() {
-            var cards = grid.querySelectorAll('.fc-card-wrapper');
-            cards[currentIdx].querySelector('.fc-card').classList.remove('flipped');
-            currentIdx = (currentIdx - 1 + cards.length) % cards.length;
-            cards[currentIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
-            counter.textContent = (currentIdx + 1) + ' / ' + dateCards.length;
-        });
-
-        document.getElementById('fc-next').addEventListener('click', function() {
-            var cards = grid.querySelectorAll('.fc-card-wrapper');
-            cards[currentIdx].querySelector('.fc-card').classList.remove('flipped');
-            currentIdx = (currentIdx + 1) % cards.length;
-            cards[currentIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
-            counter.textContent = (currentIdx + 1) + ' / ' + dateCards.length;
         });
 
         // Shuffle
